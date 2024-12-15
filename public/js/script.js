@@ -1,11 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
     // --- פונקציונליות להחלפת התמונות ---
     const images = [
-    './public/images/a/1.jpg',
-    './public/images/a/2.jpg',
-    './public/images/a/3.jpg',
-    './public/images/a/4.jpg'
-   ];
+        './public/images/a/1.jpg',
+        './public/images/a/2.jpg',
+        './public/images/a/3.jpg',
+        './public/images/a/4.jpg'
+    ];
 
     let currentIndex = 0;
     const heroImageElement = document.querySelector('.hero-image');
@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     testimonials.forEach(paragraph => {
         const fullText = paragraph.textContent.trim();
-        const maxLength = 500;
+        const maxLength = 200; // הפחתתי את המקסימום כדי להתאים למובייל
 
         if (fullText.length > maxLength) {
             const shortText = fullText.slice(0, maxLength) + "...";
@@ -82,20 +82,39 @@ document.addEventListener("DOMContentLoaded", () => {
             const readMoreBtn = document.createElement("span");
             readMoreBtn.textContent = "קרא עוד";
             readMoreBtn.className = "read-more-btn";
+            readMoreBtn.style.color = "#f05454";
+            readMoreBtn.style.cursor = "pointer";
             paragraph.parentElement.appendChild(readMoreBtn);
 
             // פונקציה להרחבת הטקסט
             readMoreBtn.addEventListener("click", () => {
                 if (readMoreBtn.textContent === "קרא עוד") {
                     paragraph.textContent = fullText;
+                    paragraph.appendChild(readMoreBtn);
                     readMoreBtn.textContent = "הצג פחות";
                 } else {
                     paragraph.textContent = shortText;
+                    paragraph.appendChild(readMoreBtn);
                     readMoreBtn.textContent = "קרא עוד";
                 }
             });
         }
     });
+
+    // --- התאמה אוטומטית לגלריות במסכים קטנים ---
+    const resizeCarousels = () => {
+        const screenWidth = window.innerWidth;
+
+        if (screenWidth < 768) {
+            projectCarousel.style.scrollSnapType = "x mandatory";
+            testimonialCarousel.style.scrollSnapType = "x mandatory";
+        }
+    };
+
+    window.addEventListener("resize", resizeCarousels);
+    resizeCarousels();
+});
+
 });
 
 
