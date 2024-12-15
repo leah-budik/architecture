@@ -134,6 +134,16 @@
     <footer class="footer">
         <p>© 2024. כל הזכויות שמורות</p>
     </footer>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const menuToggle = document.getElementById("menu-toggle");
+            const navMenu = document.querySelector(".nav ul");
+
+            menuToggle.addEventListener("click", () => {
+                navMenu.classList.toggle("active"); // הצגת התפריט והסתרתו
+            });
+        });
+    </script>
     <script src="public/js/script.js"></script>
 </body>
 </html>
