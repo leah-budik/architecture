@@ -59,23 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // --- תמיכה במכשירי מגע (מחוות החלקה) ---
-    let touchStartX = 0;
-    let touchEndX = 0;
-
-    testimonialCarousel.addEventListener("touchstart", (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-    });
-
-    testimonialCarousel.addEventListener("touchend", (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        if (touchEndX < touchStartX) {
-            testimonialCarousel.scrollBy({ left: 300, behavior: "smooth" });
-        } else if (touchEndX > touchStartX) {
-            testimonialCarousel.scrollBy({ left: -300, behavior: "smooth" });
-        }
-    });
-
     // --- קרא עוד לכרטיסיות המלצות ---
     const testimonials = document.querySelectorAll(".testimonial-card p");
 
