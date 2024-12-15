@@ -44,45 +44,58 @@ document.addEventListener("DOMContentLoaded", () => {
     updateProjectArrows();
 
     // --- קרוסלת "לקוחות ממליצים" ---
-    const testimonialCarousel = document.getElementById("testimonial-carousel");
+const testimonialCarousel = document.getElementById("testimonial-carousel");
     const testimonialLeftArrow = document.getElementById("testimonial-left-arrow");
     const testimonialRightArrow = document.getElementById("testimonial-right-arrow");
-    const scrollStepTestimonials = 300; // גלילה קטנה יותר מתאימה להמלצות
 
     const updateTestimonialArrows = () => {
         testimonialLeftArrow.style.visibility = testimonialCarousel.scrollLeft <= 0 ? "hidden" : "visible";
         testimonialRightArrow.style.visibility =
-            testimonialCarousel.scrollLeft + testimonialCarousel.offsetWidth >= testimonialCarousel.scrollWidth
+            testimonialCarousel.scrollLeft >= testimonialCarousel.scrollWidth - testimonialCarousel.clientWidth
                 ? "hidden"
                 : "visible";
     };
 
     testimonialLeftArrow.addEventListener("click", () => {
-        testimonialCarousel.scrollBy({ left: -scrollStepTestimonials, behavior: "smooth" });
+        testimonialCarousel.scrollBy({ left: -scrollStep, behavior: "smooth" });
     });
 
     testimonialRightArrow.addEventListener("click", () => {
-        testimonialCarousel.scrollBy({ left: scrollStepTestimonials, behavior: "smooth" });
+        testimonialCarousel.scrollBy({ left: scrollStep, behavior: "smooth" });
     });
 
     testimonialCarousel.addEventListener("scroll", updateTestimonialArrows);
     updateTestimonialArrows();
 
-    // --- עיצוב מחדש והתאמת כרטיסיות ההמלצות ---
-    const testimonialCards = document.querySelectorAll(".testimonial-card");
+    // --- קרא עוד לכרטיסיות המלצות ---
+    const testimonials = document.querySelectorAll(".testimonial-card p");
 
-    const resizeTestimonialCards = () => {
-        const screenWidth = window.innerWidth;
+    testimonials.forEach(paragraph => {
+        const fullText = paragraph.textContent.trim();
+        const maxLength = 500;
 
-        testimonialCards.forEach((card) => {
-            if (screenWidth < 768) {
-                card.style.flex = "0 0 80%"; // התאמה למובייל
-                card.style.maxWidth = "80%";
-            } else {
-                card.style.flex = "0 0 300px"; // גודל קבוע לדסקטופ
-                card.style.maxWidth = "300px";
-            }
-        });
+        if (fullText.length > maxLength) {
+            const shortText = fullText.slice(0, maxLength) + "...";
+            paragraph.textContent = shortText;
+
+            // יצירת כפתור "קרא עוד"
+            const readMoreBtn = document.createElement("span");
+            readMoreBtn.textContent = "קרא עוד";
+            readMoreBtn.className = "read-more-btn";
+            paragraph.parentElement.appendChild(readMoreBtn);
+
+            // פונקציה להרחבת הטקסט
+            readMoreBtn.addEventListener("click", () => {
+                if (readMoreBtn.textContent === "קרא עוד") {
+                    paragraph.textContent = fullText;
+                    readMoreBtn.textContent = "הצג פחות";
+                } else {
+                    paragraph.textContent = shortText;
+                    readMoreBtn.textContent = "קרא עוד";
+                }
+            });
+        }
+    });
     };
 
     window.addEventListener("resize", resizeTestimonialCards);
