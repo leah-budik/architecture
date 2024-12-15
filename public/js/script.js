@@ -1,11 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
     // --- פונקציונליות להחלפת התמונות ---
     const images = [
-        'public/images/a/1.jpg',
-        'public/images/a/2.jpg',
-        'public/images/a/3.jpg',
-        'public/images/a/4.jpg'
-    ];    
+    './public/images/a/1.jpg',
+    './public/images/a/2.jpg',
+    './public/images/a/3.jpg',
+    './public/images/a/4.jpg'
+   ];
+
     let currentIndex = 0;
     const heroImageElement = document.querySelector('.hero-image');
 
