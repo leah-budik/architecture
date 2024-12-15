@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
         './public/images/a/3.jpg',
         './public/images/a/4.jpg'
     ];
-
     let currentIndex = 0;
     const heroImageElement = document.querySelector('.hero-image');
 
@@ -18,54 +17,47 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(updateHeroImage, 3000);
     updateHeroImage();
 
-    // --- קרוסלת "פרויקטים נבחרים" ---
-    const projectCarousel = document.getElementById("carousel");
-    const projectLeftArrow = document.getElementById("left-arrow");
-    const projectRightArrow = document.getElementById("right-arrow");
-    const scrollStep = 320;
-
-    const updateProjectArrows = () => {
-        projectLeftArrow.style.visibility = projectCarousel.scrollLeft <= 0 ? "hidden" : "visible";
-        projectRightArrow.style.visibility =
-            projectCarousel.scrollLeft + projectCarousel.offsetWidth >= projectCarousel.scrollWidth
-                ? "hidden"
-                : "visible";
-    };
-
-    projectLeftArrow.addEventListener("click", () => {
-        projectCarousel.scrollBy({ left: -scrollStep, behavior: "smooth" });
-    });
-
-    projectRightArrow.addEventListener("click", () => {
-        projectCarousel.scrollBy({ left: scrollStep, behavior: "smooth" });
-    });
-
-    projectCarousel.addEventListener("scroll", updateProjectArrows);
-    updateProjectArrows();
-
     // --- קרוסלת "לקוחות ממליצים" ---
-const testimonialCarousel = document.getElementById("testimonial-carousel");
-    const testimonialLeftArrow = document.getElementById("testimonial-left-arrow");
-    const testimonialRightArrow = document.getElementById("testimonial-right-arrow");
+    const testimonialCarousel = document.getElementById("testimonial-carousel");
 
-    const updateTestimonialArrows = () => {
-        testimonialLeftArrow.style.visibility = testimonialCarousel.scrollLeft <= 0 ? "hidden" : "visible";
-        testimonialRightArrow.style.visibility =
-            testimonialCarousel.scrollLeft >= testimonialCarousel.scrollWidth - testimonialCarousel.clientWidth
-                ? "hidden"
-                : "visible";
-    };
+    let isDragging = false; // משתנה לבדיקה אם הגרירה מתבצעת
+    let startX;
+    let scrollLeft;
 
-    testimonialLeftArrow.addEventListener("click", () => {
-        testimonialCarousel.scrollBy({ left: -scrollStep, behavior: "smooth" });
+    // --- גרירת עכבר ---
+    testimonialCarousel.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        startX = e.pageX - testimonialCarousel.offsetLeft;
+        scrollLeft = testimonialCarousel.scrollLeft;
+        testimonialCarousel.style.cursor = "grabbing";
     });
 
-    testimonialRightArrow.addEventListener("click", () => {
-        testimonialCarousel.scrollBy({ left: scrollStep, behavior: "smooth" });
+    testimonialCarousel.addEventListener("mouseleave", () => {
+        isDragging = false;
+        testimonialCarousel.style.cursor = "grab";
     });
 
-    testimonialCarousel.addEventListener("scroll", updateTestimonialArrows);
-    updateTestimonialArrows();
+    testimonialCarousel.addEventListener("mouseup", () => {
+        isDragging = false;
+        testimonialCarousel.style.cursor = "grab";
+    });
+
+    testimonialCarousel.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - testimonialCarousel.offsetLeft;
+        const walk = (x - startX) * 2; // מהירות הגלילה
+        testimonialCarousel.scrollLeft = scrollLeft - walk;
+    });
+
+    // --- גלילה עם חיצי המקלדת ---
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowLeft") {
+            testimonialCarousel.scrollBy({ left: -300, behavior: "smooth" });
+        } else if (e.key === "ArrowRight") {
+            testimonialCarousel.scrollBy({ left: 300, behavior: "smooth" });
+        }
+    });
 
     // --- קרא עוד לכרטיסיות המלצות ---
     const testimonials = document.querySelectorAll(".testimonial-card p");
@@ -96,11 +88,8 @@ const testimonialCarousel = document.getElementById("testimonial-carousel");
             });
         }
     });
-    };
-
-    window.addEventListener("resize", resizeTestimonialCards);
-    resizeTestimonialCards();
 });
+
 
 
 
