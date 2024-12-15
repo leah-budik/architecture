@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const updateProjectArrows = () => {
         projectLeftArrow.style.visibility = projectCarousel.scrollLeft <= 0 ? "hidden" : "visible";
         projectRightArrow.style.visibility =
-            projectCarousel.scrollLeft >= projectCarousel.scrollWidth - projectCarousel.clientWidth
+            projectCarousel.scrollLeft + projectCarousel.offsetWidth >= projectCarousel.scrollWidth
                 ? "hidden"
                 : "visible";
     };
@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const updateTestimonialArrows = () => {
         testimonialLeftArrow.style.visibility = testimonialCarousel.scrollLeft <= 0 ? "hidden" : "visible";
         testimonialRightArrow.style.visibility =
-            testimonialCarousel.scrollLeft >= testimonialCarousel.scrollWidth - testimonialCarousel.clientWidth
+            testimonialCarousel.scrollLeft + testimonialCarousel.offsetWidth >= testimonialCarousel.scrollWidth
                 ? "hidden"
                 : "visible";
     };
@@ -67,54 +67,36 @@ document.addEventListener("DOMContentLoaded", () => {
     testimonialCarousel.addEventListener("scroll", updateTestimonialArrows);
     updateTestimonialArrows();
 
-    // --- קרא עוד לכרטיסיות המלצות ---
-    const testimonials = document.querySelectorAll(".testimonial-card p");
+    // --- החזרת כרטיסיות המלצות למצב המקורי ---
+    const testimonialCards = document.querySelectorAll(".testimonial-card");
 
-    testimonials.forEach(paragraph => {
-        const fullText = paragraph.textContent.trim();
-        const maxLength = 200; // הפחתתי את המקסימום כדי להתאים למובייל
-
-        if (fullText.length > maxLength) {
-            const shortText = fullText.slice(0, maxLength) + "...";
-            paragraph.textContent = shortText;
-
-            // יצירת כפתור "קרא עוד"
-            const readMoreBtn = document.createElement("span");
-            readMoreBtn.textContent = "קרא עוד";
-            readMoreBtn.className = "read-more-btn";
-            readMoreBtn.style.color = "#f05454";
-            readMoreBtn.style.cursor = "pointer";
-            paragraph.parentElement.appendChild(readMoreBtn);
-
-            // פונקציה להרחבת הטקסט
-            readMoreBtn.addEventListener("click", () => {
-                if (readMoreBtn.textContent === "קרא עוד") {
-                    paragraph.textContent = fullText;
-                    paragraph.appendChild(readMoreBtn);
-                    readMoreBtn.textContent = "הצג פחות";
-                } else {
-                    paragraph.textContent = shortText;
-                    paragraph.appendChild(readMoreBtn);
-                    readMoreBtn.textContent = "קרא עוד";
-                }
-            });
-        }
+    testimonialCards.forEach((card) => {
+        card.style.flex = "0 0 300px"; // מחזיר את הרוחב הקבוע
+        card.style.maxWidth = "300px"; // מקסימום רוחב
     });
 
-    // --- התאמה אוטומטית לגלריות במסכים קטנים ---
+    // --- התאמת גלריות למובייל ---
     const resizeCarousels = () => {
         const screenWidth = window.innerWidth;
 
         if (screenWidth < 768) {
             projectCarousel.style.scrollSnapType = "x mandatory";
             testimonialCarousel.style.scrollSnapType = "x mandatory";
+
+            testimonialCards.forEach((card) => {
+                card.style.flex = "0 0 80%"; // כרטיסיות גדולות יותר במובייל
+                card.style.maxWidth = "90%";
+            });
+        } else {
+            testimonialCards.forEach((card) => {
+                card.style.flex = "0 0 300px"; // מחזיר את הרוחב הקודם במסכים גדולים
+                card.style.maxWidth = "300px";
+            });
         }
     };
 
     window.addEventListener("resize", resizeCarousels);
     resizeCarousels();
-});
-
 });
 
 
