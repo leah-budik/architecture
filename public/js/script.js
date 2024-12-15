@@ -88,6 +88,17 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     });
+
+    // --- פונקציונליות תפריט המבורגר לנייד ---
+    const menuToggle = document.createElement("div");
+    menuToggle.className = "menu-toggle";
+    menuToggle.textContent = "☰";
+    document.querySelector(".header").prepend(menuToggle);
+
+    const navMenu = document.querySelector(".nav ul");
+    menuToggle.addEventListener("click", () => {
+        navMenu.classList.toggle("active");
+    });
 });
 
 
