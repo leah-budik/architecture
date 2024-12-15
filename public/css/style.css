@@ -345,9 +345,7 @@ ul {
 }
 
 .testimonial-card {
-    flex: 0 0 calc(33.33% - 20px); /* 3 כרטיסים בשורה, עם מרווח */
-    max-width: 300px; /* רוחב מקסימלי לכרטיס */
-    min-width: 250px; /* רוחב מינימלי */
+    flex: 0 0 300px; /* רוחב קבוע לכל כרטיס */
     padding: 20px;
     background: linear-gradient(135deg, #252525, #3a3a3a);
     border-radius: 10px;
@@ -376,7 +374,6 @@ ul {
     font-weight: bold;
 }
 
-/* חצים */
 .arrow {
     position: absolute;
     top: 50%;
@@ -410,44 +407,6 @@ ul {
 
 .carousel::-webkit-scrollbar {
     display: none; 
-}
-
-/* התאמה למובייל */
-@media (max-width: 768px) {
-    .testimonial-card {
-        flex: 0 0 80%; /* כרטיס אחד בכל שורה */
-        max-width: 100%; /* ניצול מלא של הרוחב */
-        padding: 15px; /* רווחים קטנים יותר */
-    }
-
-    .testimonials h2 {
-        font-size: 2rem; /* כותרת קטנה יותר */
-    }
-
-    .arrow {
-        width: 40px; /* חצים קטנים יותר */
-        height: 40px;
-        font-size: 1.5rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .testimonial-card {
-        flex: 0 0 90%; /* הכרטיס יהיה כמעט על כל הרוחב */
-        padding: 10px; /* רווחים קטנים יותר */
-    }
-
-    .testimonials h2 {
-        font-size: 1.8rem; /* כותרת קטנה נוספת */
-    }
-
-    .testimonial-card p {
-        font-size: 0.9rem; /* טקסט קטן יותר */
-    }
-
-    .testimonial-card span {
-        font-size: 0.8rem; /* שם קטן יותר */
-    }
 }
 
 
