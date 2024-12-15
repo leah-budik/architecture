@@ -47,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const testimonialCarousel = document.getElementById("testimonial-carousel");
     const testimonialLeftArrow = document.getElementById("testimonial-left-arrow");
     const testimonialRightArrow = document.getElementById("testimonial-right-arrow");
+    const scrollStepTestimonials = 300; // גלילה קטנה יותר מתאימה להמלצות
 
     const updateTestimonialArrows = () => {
         testimonialLeftArrow.style.visibility = testimonialCarousel.scrollLeft <= 0 ? "hidden" : "visible";
@@ -57,47 +58,37 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     testimonialLeftArrow.addEventListener("click", () => {
-        testimonialCarousel.scrollBy({ left: -scrollStep, behavior: "smooth" });
+        testimonialCarousel.scrollBy({ left: -scrollStepTestimonials, behavior: "smooth" });
     });
 
     testimonialRightArrow.addEventListener("click", () => {
-        testimonialCarousel.scrollBy({ left: scrollStep, behavior: "smooth" });
+        testimonialCarousel.scrollBy({ left: scrollStepTestimonials, behavior: "smooth" });
     });
 
     testimonialCarousel.addEventListener("scroll", updateTestimonialArrows);
     updateTestimonialArrows();
 
-    // --- החזרת כרטיסיות המלצות למצב המקורי ---
+    // --- עיצוב מחדש והתאמת כרטיסיות ההמלצות ---
     const testimonialCards = document.querySelectorAll(".testimonial-card");
 
-    testimonialCards.forEach((card) => {
-        card.style.flex = "0 0 300px"; // מחזיר את הרוחב הקבוע
-        card.style.maxWidth = "300px"; // מקסימום רוחב
-    });
-
-    // --- התאמת גלריות למובייל ---
-    const resizeCarousels = () => {
+    const resizeTestimonialCards = () => {
         const screenWidth = window.innerWidth;
 
-        if (screenWidth < 768) {
-            projectCarousel.style.scrollSnapType = "x mandatory";
-            testimonialCarousel.style.scrollSnapType = "x mandatory";
-
-            testimonialCards.forEach((card) => {
-                card.style.flex = "0 0 80%"; // כרטיסיות גדולות יותר במובייל
-                card.style.maxWidth = "90%";
-            });
-        } else {
-            testimonialCards.forEach((card) => {
-                card.style.flex = "0 0 300px"; // מחזיר את הרוחב הקודם במסכים גדולים
+        testimonialCards.forEach((card) => {
+            if (screenWidth < 768) {
+                card.style.flex = "0 0 80%"; // התאמה למובייל
+                card.style.maxWidth = "80%";
+            } else {
+                card.style.flex = "0 0 300px"; // גודל קבוע לדסקטופ
                 card.style.maxWidth = "300px";
-            });
-        }
+            }
+        });
     };
 
-    window.addEventListener("resize", resizeCarousels);
-    resizeCarousels();
+    window.addEventListener("resize", resizeTestimonialCards);
+    resizeTestimonialCards();
 });
+
 
 
 
