@@ -1,0 +1,589 @@
+/* בסיס */
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Heebo', sans-serif;
+    color: #f0f0f0;
+    background: linear-gradient(135deg, #121212, #1a1a1a);
+    line-height: 1.6;
+    height: 100%;
+    width: 100%;
+    overflow: scroll; /* מאפשר גלילה גם אנכית וגם אופקית */
+    -ms-overflow-style: none; /* הסרת פסי גלילה ב-IE וב-Edge */
+    scrollbar-width: none; /* הסרת פסי גלילה ב-Firefox */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    display: none; /* הסתרת פסי גלילה ב-Chrome וב-Safari */
+}
+
+
+h1, h2 {
+    margin: 0;
+    color: #f05454; /* צבע כותרות */
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* תפריט עליון */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1px 20px;
+    background-color: rgba(30, 30, 30, 0.95); /* רקע כהה עם שקיפות */
+    color: #f0f0f0; /* צבע טקסט */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* תמיד מעל הכל */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7); /* צל מודגש */
+    box-sizing: border-box; /* הכללת פדינג ברוחב */
+    overflow-x: hidden; /* מניעת גלישה של התפריט */
+}
+
+.logo img {
+    width: 100px;
+    height: auto;
+}
+
+.nav ul {
+    display: flex;
+    gap: 15px;
+    white-space: nowrap; /* שמירה על שורה אחת */
+}
+
+.nav ul li a {
+    font-size: 1rem;
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background 0.3s ease, color 0.3s ease;
+    white-space: nowrap;
+    color: #f0f0f0; /* צבע טקסט */
+}
+
+.nav ul li a:hover {
+    background-color: #333333; /* רקע כהה יותר */
+    color: #00f7ff; /* כחול זוהר */
+}
+
+/* מניעת גלישת האלמנטים מהתפריט */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px;
+    }
+
+    .nav ul {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+
+/* אזור גיבור */
+.hero {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    background: linear-gradient(135deg, #1a1a1a, #121212); /* רקע שחור עם גרדיאנט */
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-content {
+    width: 35%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 20, 0.7));
+    color: #f0f0f0;
+    padding: 20px;
+    text-align: center;
+    clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+    z-index: 2;
+}
+
+.hero-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+.hero-content p {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+}
+
+.hero-content .btn {
+    padding: 10px 20px;
+    background-color: #f05454;
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.hero-content .btn:hover {
+    background-color: #d32f2f;
+    transform: scale(1.1);
+}
+
+.hero-image {
+    width: 65%;
+    background-size: cover;
+    background-position: center;
+    clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);
+    position: relative;
+}
+
+/* שטח החוצץ */
+.hero-divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 35%;
+    right: 65%;
+    background: linear-gradient(135deg, #333333, #1a1a1a); /* מעבר כהה */
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    z-index: 1;
+    transition: background 0.5s ease;
+}
+
+
+
+
+
+
+.carousel-container {
+    position: relative;
+    overflow: hidden;
+    width: 90%; /* התאמה לרוחב מסך */
+    margin: 0 auto; /* מרכז את הקרוסלה */
+    background: linear-gradient(135deg, #121212, #1a1a1a); /* רקע שחור עם מעבר צבע */
+    border-radius: 15px; /* פינות מעוגלות לקרוסלה */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7); /* צל */
+}
+
+.carousel {
+    display: flex;
+    gap: 20px; /* רווח בין התמונות */
+    scroll-behavior: smooth; /* גלילה חלקה */
+    white-space: normal; /* מאפשר להימנע מהבעיה */
+    overflow: hidden; /* חוסם גלישה מעבר לקרוסלה */
+    position: relative;
+}
+
+.carousel img {
+    width: 500px; /* רוחב קבוע */
+    height: 300px; /* גובה קבוע */
+    object-fit: cover; /* שומר על פרופורציה */
+    border-radius: 10px; /* פינות מעוגלות */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1); /* צל לבן קל */
+}
+
+.carousel img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 15px rgba(255, 255, 255, 0.2); /* צל בהיר יותר בריחוף */
+}
+
+.arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(50, 50, 50, 0.7); /* רקע אפור כהה */
+    color: #ffffff; /* צבע חצים לבן */
+    border: none;
+    border-radius: 50%;
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 0.3s ease, transform 0.2s ease;
+    z-index: 100;
+}
+
+.arrow:hover {
+    background-color: rgba(80, 80, 80, 0.9); /* רקע כהה יותר בריחוף */
+    transform: translateY(-50%) scale(1.1);
+}
+
+.left-arrow {
+    left: 10px;
+}
+
+.right-arrow {
+    right: 10px;
+}
+
+.projects h2 {
+    text-align: center; /* ממרכז את הטקסט */
+    font-size: 2.5rem; /* גודל גופן */
+    font-weight: bold; /* הופך את הטקסט לעבה */
+    color: #ffffff; /* צבע טקסט לבן */
+    margin-bottom: 30px; /* רווח מתחת לכותרת */
+    text-transform: uppercase; /* אותיות גדולות */
+    letter-spacing: 2px; /* מרווח בין האותיות */
+    position: relative; /* מאפשר הוספת קו דקורטיבי */
+}
+
+/* קו דקורטיבי מתחת לכותרת */
+.projects h2::after {
+    content: "";
+    display: block;
+    width: 80px; /* רוחב הקו */
+    height: 4px; /* גובה הקו */
+    background-color: #00f7ff; /* צבע קו תכלת זוהר */
+    margin: 10px auto 0; /* רווח עליון ומיקום מרכזי */
+    border-radius: 2px; /* קצוות מעוגלים */
+}
+
+/* רווח בין הסקשנים */
+.projects {
+    margin-bottom: 50px; /* רווח מתחת לסקשן הפרויקטים */
+}
+
+.testimonials {
+    margin-top: 50px; /* רווח מעל סקשן ההמלצות */
+}
+
+
+
+
+
+
+
+.testimonials {
+    padding: 50px 20px;
+    background: linear-gradient(135deg, #1a1a1a, #333333);
+    text-align: center;
+    color: white;
+    position: relative;
+}
+
+.testimonials h2 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    color: #00f7ff;
+    text-transform: uppercase;
+}
+
+.testimonial-carousel {
+    position: relative;
+    overflow: hidden; /* מסתיר את מה שגולש */
+    width: 90%;
+    margin: 0 auto;
+}
+
+.carousel {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto; /* גלילה אופקית */
+    scroll-behavior: smooth;
+    padding-bottom: 10px;
+}
+
+.testimonial-card {
+    flex: 0 0 300px; /* רוחב קבוע לכל כרטיס */
+    padding: 20px;
+    background: linear-gradient(135deg, #252525, #3a3a3a);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+    text-align: left;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.9);
+}
+
+.testimonial-card p {
+    font-size: 1rem;
+    color: #ccc;
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+.testimonial-card span {
+    display: block;
+    font-size: 0.9rem;
+    color: #00f7ff;
+    text-align: right;
+    font-weight: bold;
+}
+
+.arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    transition: background-color 0.3s ease;
+}
+
+.arrow:hover {
+    background-color: rgba(0, 247, 255, 0.7);
+}
+
+.left-arrow {
+    left: 0;
+}
+
+.right-arrow {
+    right: 0;
+}
+
+.carousel::-webkit-scrollbar {
+    display: none; 
+}
+
+
+
+/* צור קשר */
+.contact {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 50px 20px;
+    background: linear-gradient(135deg, #000000, #333333); /* רקע שחור עם מעבר צבעים */
+    color: white;
+    gap: 30px; /* רווח בין הריבועים */
+    text-align: center;
+}
+
+.contact-info {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* מאפשר לריבועים לרדת שורה */
+    gap: 30px;
+    width: 100%;
+    max-width: 1200px; /* מרחב מקסימלי */
+}
+
+.info-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #252525, #3a3a3a); /* רקע כהה עם מעבר צבע */
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6); /* צל עמוק */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 300px; /* רוחב אחיד לריבועים */
+    text-align: center;
+}
+
+.info-box:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 15px rgba(0, 247, 255, 0.4); /* אפקט זוהר קל */
+}
+
+.info-box i {
+    font-size: 2.5rem;
+    color: #00f7ff; /* צבע תכלת לסמלים */
+    margin-bottom: 10px;
+}
+
+.info-box a {
+    text-decoration: none;
+    color: #f0f0f0; /* צבע טקסט לבן */
+    font-size: 1.2rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.info-box a:hover {
+    color: #00c1cc; /* גוון תכלת כהה */
+}
+
+/* התאמה למסכים קטנים */
+@media (max-width: 768px) {
+    .contact-info {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .info-box {
+        width: 90%; /* התאמה למסכים קטנים */
+    }
+}
+
+
+/* Footer */
+.footer {
+    padding: 20px;
+    text-align: center;
+    background-color: #000000; /* רקע שחור */
+    color: #aaaaaa; /* טקסט אפור בהיר */
+    box-sizing: border-box;
+}
+
+
+
+
+
+עיצוב דף הגלריה
+.gallery-page {
+    padding: 50px 20px;
+    text-align: center;
+}
+
+.gallery-page h1 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+}
+
+.gallery {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap; /* התאמה למסכים קטנים */
+}
+
+.gallery img {
+    width: calc(33% - 20px); /* התאמה למרווחים ולגודל */
+    border-radius: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.gallery img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* עיצוב Lightbox */
+.lightbox {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.lightbox img {
+    max-width: 80%;
+    max-height: 80%;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.lightbox .close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 2rem;
+    color: white;
+    cursor: pointer;
+}
+
+.lightbox .arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 3rem;
+    color: white;
+    cursor: pointer;
+    user-select: none;
+}
+
+.lightbox .arrow.left {
+    left: 10%;
+}
+
+.lightbox .arrow.right {
+    right: 10%;
+}
+
+/* CSS רלוונטי לדף הזה בלבד */
+body.gallery-page-body > main.gallery-page {
+    padding-top: 130px; /* הריווח מתחת לתפריט */
+}
+
+
+
+/* עיצוב החץ */
+.arrow-down {
+    display: block;
+    width: 30px;
+    height: 30px;
+    border-left: 3px solid white;
+    border-bottom: 3px solid white;
+    transform: rotate(-45deg);
+    margin: 50px auto 0; /* מיקום החץ מתחת לכפתור */
+    animation: bounce 2s infinite ease-in-out, glow 1.5s infinite ease-in-out;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+/* אנימציה של קפיצה */
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0) rotate(-45deg);
+    }
+    40% {
+        transform: translateY(10px) rotate(-45deg);
+    }
+    60% {
+        transform: translateY(5px) rotate(-45deg);
+    }
+}
+
+/* אפקט זוהר */
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    }
+}
+
+/* אפקט ריחוף */
+.arrow-down:hover {
+    transform: scale(1.1) rotate(-45deg);
+    border-color: #00f7ff;
+    box-shadow: 0 0 20px #00f7ff;
+    opacity: 1;
+}
+
+
+
+
+
