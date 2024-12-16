@@ -20,11 +20,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- קרוסלת "לקוחות ממליצים" ---
     const testimonialCarousel = document.getElementById("testimonial-carousel");
 
-    let isDragging = false; // משתנה לבדיקה אם הגרירה מתבצעת
+    let isDragging = false;
     let startX;
     let scrollLeft;
 
-    // --- גרירת עכבר ---
     testimonialCarousel.addEventListener("mousedown", (e) => {
         isDragging = true;
         startX = e.pageX - testimonialCarousel.offsetLeft;
@@ -46,11 +45,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!isDragging) return;
         e.preventDefault();
         const x = e.pageX - testimonialCarousel.offsetLeft;
-        const walk = (x - startX) * 2; // מהירות הגלילה
+        const walk = (x - startX) * 2;
         testimonialCarousel.scrollLeft = scrollLeft - walk;
     });
 
-    // --- גלילה עם חיצי המקלדת ---
     window.addEventListener("keydown", (e) => {
         if (e.key === "ArrowLeft") {
             testimonialCarousel.scrollBy({ left: -300, behavior: "smooth" });
@@ -70,13 +68,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const shortText = fullText.slice(0, maxLength) + "...";
             paragraph.textContent = shortText;
 
-            // יצירת כפתור "קרא עוד"
             const readMoreBtn = document.createElement("span");
             readMoreBtn.textContent = "קרא עוד";
             readMoreBtn.className = "read-more-btn";
             paragraph.parentElement.appendChild(readMoreBtn);
 
-            // פונקציה להרחבת הטקסט
             readMoreBtn.addEventListener("click", () => {
                 if (readMoreBtn.textContent === "קרא עוד") {
                     paragraph.textContent = fullText;
@@ -88,8 +84,72 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     });
+
+    // --- קרא עוד לחלק האודות ---
+    const readMoreBtn = document.getElementById("readMoreBtn");
+    const aboutText = document.querySelector(".about-text");
+    const aboutSection = document.querySelector(".about-section");
+
+    readMoreBtn.addEventListener("click", () => {
+        aboutText.classList.toggle("show");
+        readMoreBtn.textContent = aboutText.classList.contains("show")
+            ? "הצג פחות"
+            : "קרא עוד";
+    });
+
+    document.querySelector('a[href="#about"]').addEventListener("click", (e) => {
+        e.preventDefault();
+        document.getElementById("about").scrollIntoView({ behavior: "smooth" });
+        aboutText.classList.add("show");
+        readMoreBtn.textContent = "הצג פחות";
+    });
+
+    // --- אפקטי צד לחלק האודות ---
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    aboutSection.classList.add("in-view");
+                } else {
+                    aboutSection.classList.remove("in-view");
+                }
+            });
+        },
+        { threshold: 0.5 }
+    );
+
+    observer.observe(aboutSection);
+
+    // --- אפקטי גלילה נוספים לחלק הציטוט החדש ---
+    const quoteSection = document.querySelector(".quote-section");
+    if (quoteSection) {
+        const quoteObserver = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        quoteSection.classList.add("in-view");
+                    }
+                });
+            },
+            { threshold: 0.5 }
+        );
+
+        quoteObserver.observe(quoteSection);
+    }
+    const hamburgerBtn = document.getElementById("hamburger-btn");
+    const navMenu = document.getElementById("nav-menu");
+
+    // הוספת האזנה ללחיצה על כפתור ההמבורגר
+    hamburgerBtn.addEventListener("click", () => {
+        navMenu.classList.toggle("show");
+        hamburgerBtn.classList.toggle("active");
+    });
+
+    // סגירת התפריט כאשר לוחצים על קישור
+    document.querySelectorAll('.nav a').forEach(link => {
+        link.addEventListener("click", () => {
+            navMenu.classList.remove("show");
+            hamburgerBtn.classList.remove("active");
+        });
+    });
 });
-
-
-
-
