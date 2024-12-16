@@ -12,18 +12,28 @@
         <div class="logo">
             <img src="public/images/לוגו סופי.pngשקוף.png" alt="לוגו">
         </div>
-        <nav class="nav">
+        <!-- כפתור המבורגר -->
+        <button class="hamburger" id="hamburger-btn" aria-label="תפריט">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    
+        <!-- תפריט הניווט -->
+        <nav class="nav" id="nav-menu">
             <ul>
                 <li><a href="#about">אודות</a></li>
                 <li><a href="#projects">פרויקטים</a></li>
                 <li><a href="#testimonials">המלצות</a></li>
                 <li><a href="#contact">צור קשר</a></li>
+                <li><a href="#hero">דף הבית</a></li>
             </ul>
         </nav>
     </header>
+    
 
     
-    <div class="hero">
+    <div class="hero" id="hero">
         <div class="hero-divider"></div>
         <div class="hero-content">
             <h1>תכנון מרחבים חכמים</h1>
@@ -35,7 +45,21 @@
         <div class="hero-image"></div>
     </div>
     
-    
+    <!-- קטע "אודות" -->
+<div id="about" class="about-section">
+    <div class="about-content-wrapper">
+        <h1 class="about-title">קצת על עצמי</h1>
+        <h2 class="about-subtitle">אדריכלות ועיצוב פנים שמגשימים את החלומות שלך</h2>
+        <p class="about-name">לאה בודיק</p>
+        <p class="about-text hidden">
+            האדריכלות היא שילוב של אומנות, פונקציונליות והגשמת חלומות. 
+            עם דגש על פרטים קטנים, חדשנות ויצירתיות, כל עיצוב הוא סיפור ייחודי. 
+            המטרה היא לשלב אסתטיקה עם שימושיות ולהתאים את החלל לצרכים שלכם.
+        </p>
+        <button id="readMoreBtn" class="btn">קרא עוד</button>
+    </div>
+</div>
+
 
     
             
@@ -60,6 +84,14 @@
         </div>
     </section>
     
+    <div class="quote-section">
+        <div class="quote-container">
+            <p class="quote-text">
+                "הבית הוא לא רק מקום מגורים, אלא השתקפות של הנשמה והחלומות שלנו."
+            </p>
+            <p class="quote-author">- לה קורבוזיה</p>
+        </div>
+    </div>
     
     
 
@@ -93,7 +125,16 @@
         </div>
     </section>
     
-    
+    <!-- קטע ציטוט השראה -->
+<section class="quote-section">
+    <div class="quote-container">
+        <blockquote>
+            "אדריכלות היא אמנות המגשימה את החלומות על ידי יצירת מרחבים חכמים ואסתטיים."
+        </blockquote>
+        <p class="quote-author">- לה קורבוזיה</p>
+    </div>
+</section>
+
     
 
     <!-- צור קשר -->
@@ -135,9 +176,3 @@
     <script src="public/js/script.js"></script>
 </body>
 </html>
-
-
-
-
-
-
