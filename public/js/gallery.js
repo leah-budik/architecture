@@ -3,13 +3,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const lightbox = document.createElement("div");
     lightbox.classList.add("lightbox");
 
+    // מבנה הלייטבוקס
     lightbox.innerHTML = `
         <span class="close">&times;</span>
         <span class="arrow left">&#10094;</span>
         <img src="" alt="תמונה מוגדלת">
         <span class="arrow right">&#10095;</span>
     `;
-
     document.body.appendChild(lightbox);
 
     const lightboxImage = lightbox.querySelector("img");
@@ -34,41 +34,73 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // סגירת הלייטבוקס
-    closeBtn.addEventListener("click", () => {
+    const closeLightbox = () => {
         lightbox.style.display = "none";
-    });
+    };
+
+    closeBtn.addEventListener("click", closeLightbox);
 
     // מעבר לתמונה הקודמת
-    leftArrow.addEventListener("click", (e) => {
-        e.stopPropagation(); // מונע סגירה בלחיצה על החץ
+    const showPreviousImage = () => {
         currentIndex = (currentIndex - 1 + galleryImages.length) % galleryImages.length;
         updateLightboxImage();
+    };
+
+    leftArrow.addEventListener("click", (e) => {
+        e.stopPropagation();
+        showPreviousImage();
     });
 
     // מעבר לתמונה הבאה
-    rightArrow.addEventListener("click", (e) => {
-        e.stopPropagation(); // מונע סגירה בלחיצה על החץ
+    const showNextImage = () => {
         currentIndex = (currentIndex + 1) % galleryImages.length;
         updateLightboxImage();
+    };
+
+    rightArrow.addEventListener("click", (e) => {
+        e.stopPropagation();
+        showNextImage();
+    });
+
+    // מעבר בין תמונות באמצעות חיצי המקלדת
+    document.addEventListener("keydown", (e) => {
+        if (lightbox.style.display === "flex") {
+            if (e.key === "ArrowLeft") {
+                showPreviousImage();
+            } else if (e.key === "ArrowRight") {
+                showNextImage();
+            } else if (e.key === "Escape") {
+                closeLightbox();
+            }
+        }
+    });
+
+    // מעבר בין תמונות עם גלילת עכבר
+    lightbox.addEventListener("wheel", (e) => {
+        e.preventDefault(); // מונע גלילה ברירת מחדל
+        if (e.deltaY > 0) { // גלילה למטה
+            showNextImage();
+        } else if (e.deltaY < 0) { // גלילה למעלה
+            showPreviousImage();
+        }
     });
 
     // סגירת הלייטבוקס בלחיצה מחוץ לתמונה
     lightbox.addEventListener("click", (e) => {
         if (e.target === lightbox) {
-            lightbox.style.display = "none";
+            closeLightbox();
         }
     });
 
+    // תפריט המבורגר
     const hamburgerBtn = document.getElementById("hamburger-btn");
     const navMenu = document.getElementById("nav-menu");
 
-    // הוספת האזנה ללחיצה על כפתור ההמבורגר
     hamburgerBtn.addEventListener("click", () => {
         navMenu.classList.toggle("show");
         hamburgerBtn.classList.toggle("active");
     });
 
-    // סגירת התפריט כאשר לוחצים על קישור
     document.querySelectorAll('.nav a').forEach(link => {
         link.addEventListener("click", () => {
             navMenu.classList.remove("show");
