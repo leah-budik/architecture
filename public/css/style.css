@@ -57,9 +57,50 @@ ul {
 }
 
 /* המבורגר */
-/* עיצוב כפתור ההמבורגר */
+
+
+
+.hamburger.active div:nth-child(1) {
+    transform: rotate(45deg) translateY(8px);
+}
+
+.hamburger.active div:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active div:nth-child(3) {
+    transform: rotate(-45deg) translateY(-8px);
+}
+
+/* עיצוב בסיסי לתפריט */
+.nav {
+    display: flex; /* מציג את התפריט אופקית במחשב */
+    flex-direction: row;
+    justify-content: flex-end; /* ימין */
+    align-items: center;
+    gap: 15px;
+}
+
+.nav ul {
+    display: flex;
+    gap: 15px;
+}
+
+.nav ul li a {
+    font-size: 1rem;
+    padding: 8px 12px;
+    color: #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.nav ul li a:hover {
+    background-color: #333333;
+    color: #00f7ff;
+}
+
+/* המבורגר לנייד */
 .hamburger {
-    display: none;
+    display: none; /* לא מוצג במחשב */
     flex-direction: column;
     justify-content: space-around;
     width: 30px;
@@ -75,47 +116,38 @@ ul {
     transition: all 0.3s ease;
 }
 
-.hamburger.active div:nth-child(1) {
-    transform: rotate(45deg) translateY(8px);
-}
-
-.hamburger.active div:nth-child(2) {
-    opacity: 0;
-}
-
-.hamburger.active div:nth-child(3) {
-    transform: rotate(-45deg) translateY(-8px);
-}
-
-/* עיצוב תפריט */
-.nav {
-    display: none; /* מוסתר כברירת מחדל */
-    flex-direction: column;
-    position: absolute;
-    top: 60px;
-    left: 0;
-    width: 100%;
-    background: rgba(30, 30, 30, 0.95);
-    z-index: 1000;
-}
-
 .nav.show {
-    display: flex; /* מציג בנייד כשכפתור ההמבורגר מופעל */
+    display: flex; /* תפריט פעיל רק לנייד */
 }
 
-@media (min-width: 769px) {
+/* התאמה לנייד */
+@media (max-width: 768px) {
+    .hamburger {
+        display: flex; /* מציג את ההמבורגר רק בנייד */
+    }
+
     .nav {
-        display: flex; /* מציג את התפריט במחשב */
-        flex-direction: row; /* תפריט אופקי */
-        position: static; /* מיקום סטטי */
-        background: none; /* מבטל רקע נוסף */
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        background: rgba(30, 30, 30, 0.95);
+        z-index: 1000;
+    }
+
+    .nav.show {
+        display: flex; /* מציג את התפריט בנייד */
     }
 
     .nav ul {
-        flex-direction: row;
-        gap: 15px;
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
     }
 }
+
 
 
 /* אזור גיבור */
