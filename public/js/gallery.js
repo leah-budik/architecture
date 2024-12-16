@@ -85,6 +85,26 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // מעבר בין תמונות עם מחוות החלקה בנייד
+    let startX = 0;
+
+    lightbox.addEventListener("touchstart", (e) => {
+        startX = e.touches[0].clientX; // שמירת מיקום התחלת המחווה
+    });
+
+    lightbox.addEventListener("touchend", (e) => {
+        const endX = e.changedTouches[0].clientX; // מיקום סיום המחווה
+        const diffX = startX - endX;
+
+        if (diffX > 50) {
+            // החלקה שמאלה: מעבר לתמונה הבאה
+            showNextImage();
+        } else if (diffX < -50) {
+            // החלקה ימינה: מעבר לתמונה הקודמת
+            showPreviousImage();
+        }
+    });
+
     // סגירת הלייטבוקס בלחיצה מחוץ לתמונה
     lightbox.addEventListener("click", (e) => {
         if (e.target === lightbox) {
@@ -108,4 +128,5 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
 
