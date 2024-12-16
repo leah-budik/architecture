@@ -58,4 +58,22 @@ document.addEventListener("DOMContentLoaded", () => {
             lightbox.style.display = "none";
         }
     });
+
+    const hamburgerBtn = document.getElementById("hamburger-btn");
+    const navMenu = document.getElementById("nav-menu");
+
+    // הוספת האזנה ללחיצה על כפתור ההמבורגר
+    hamburgerBtn.addEventListener("click", () => {
+        navMenu.classList.toggle("show");
+        hamburgerBtn.classList.toggle("active");
+    });
+
+    // סגירת התפריט כאשר לוחצים על קישור
+    document.querySelectorAll('.nav a').forEach(link => {
+        link.addEventListener("click", () => {
+            navMenu.classList.remove("show");
+            hamburgerBtn.classList.remove("active");
+        });
+    });
 });
+
