@@ -91,9 +91,9 @@ ul {
     align-items: center;
     background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 20, 0.7));
     text-align: center;
+    clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
     padding: 20px;
     z-index: 2;
-    clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
 }
 
 .hero-image {
@@ -106,20 +106,25 @@ ul {
 /* התאמה לנייד */
 @media (max-width: 768px) {
     .hero {
-        flex-direction: column;
-        height: auto; /* גובה מותאם לנייד */
+        flex-direction: row; /* נשאר אופקי */
+        height: 60vh; /* גובה מצומצם לפרופורציה מותאמת */
     }
 
     .hero-content {
-        width: 100%;
+        width: 40%; /* נשאר יחסי אבל קטן במעט */
         padding: 10px;
-        clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%); /* משאיר את הצורה המקורית */
+    }
+
+    .hero-content h1 {
+        font-size: 1.8rem; /* קטן מעט בנייד */
+    }
+
+    .hero-content p {
+        font-size: 1rem;
     }
 
     .hero-image {
-        width: 100%;
-        height: 200px;
-        clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%); /* שומר על הצורה המקורית */
+        width: 60%; /* שומר על יחס מתאים */
     }
 
     .hamburger {
