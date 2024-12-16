@@ -42,7 +42,7 @@ ul {
 }
 
 .logo img {
-    width: 100px;
+    width: 60px;
 }
 
 .nav ul {
@@ -154,7 +154,199 @@ ul {
 
 
 
+/* עיצוב כללי של הקטע */
+.about-section {
+    position: relative;
+    background-color: #121212; /* רקע שחור */
+    color: #f0f0f0;
+    text-align: center;
+    padding: 80px 20px;
+    overflow: hidden;
+    scroll-margin-top: 80px; /* גלילה חלקה */
+}
 
+/* עיצוב כותרות */
+.about-title {
+    font-size: 3rem;
+    color: #f05454;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.about-subtitle {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #ddd;
+}
+
+.about-name {
+    font-style: italic;
+    color: #f05454;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+}
+
+/* טקסט מוסתר */
+.about-text {
+    display: none;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    max-width: 700px;
+    margin: 0 auto 20px;
+}
+
+.about-text.show {
+    display: block;
+    animation: fadeIn 0.8s ease;
+}
+
+/* כפתור */
+.btn {
+    padding: 10px 20px;
+    background-color: #f05454;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #d32f2f;
+    transform: scale(1.05);
+}
+
+/* אפקטי צד */
+.about-section::before,
+.about-section::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 150px;
+    background: rgba(255, 255, 255, 0.05);
+    pointer-events: none;
+    transition: all 0.5s ease;
+}
+
+.about-section::before {
+    left: -150px;
+    transform: skewX(-15deg);
+}
+
+.about-section::after {
+    right: -150px;
+    transform: skewX(15deg);
+}
+
+.about-section.in-view::before {
+    left: 0;
+}
+
+.about-section.in-view::after {
+    right: 0;
+}
+
+/* קטע הציטוט */
+.quote-section {
+    position: relative;
+    background-color: #121212;
+    color: #f0f0f0;
+    text-align: center;
+    padding: 100px 20px;
+    overflow: hidden;
+    scroll-margin-top: 80px; /* התאמה לגלילה */
+}
+
+.quote-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 5px solid #f05454;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 1s ease;
+    transition: transform 0.5s ease-in-out;
+}
+
+.quote-container:hover {
+    transform: scale(1.02);
+}
+
+/* טקסט הציטוט */
+.quote-text {
+    font-size: 1.8rem;
+    font-style: italic;
+    color: #f0f0f0;
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.quote-author {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #f05454;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* אפקטי צד */
+.quote-section::before,
+.quote-section::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 150px;
+    background: rgba(255, 255, 255, 0.05);
+    pointer-events: none;
+    transition: all 0.5s ease;
+    z-index: -1;
+}
+
+.quote-section::before {
+    left: -150px;
+    transform: skewX(-15deg);
+}
+
+.quote-section::after {
+    right: -150px;
+    transform: skewX(15deg);
+}
+
+.quote-section.in-view::before {
+    left: 0;
+}
+
+.quote-section.in-view::after {
+    right: 0;
+}
+
+/* אנימציות */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
 
 
@@ -526,14 +718,6 @@ body.gallery-page-body > main.gallery-page {
     box-shadow: 0 0 20px #00f7ff;
     opacity: 1;
 }
-
-
-
-
-
-
-
-
 
 
 
