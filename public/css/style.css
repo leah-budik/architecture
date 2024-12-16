@@ -8,12 +8,19 @@ html, body {
     line-height: 1.6;
     height: 100%;
     width: 100%;
-    overflow-x: hidden;
+    overflow: scroll; /* מאפשר גלילה גם אנכית וגם אופקית */
+    -ms-overflow-style: none; /* הסרת פסי גלילה ב-IE וב-Edge */
+    scrollbar-width: none; /* הסרת פסי גלילה ב-Firefox */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    display: none; /* הסתרת פסי גלילה ב-Chrome וב-Safari */
 }
 
 h1, h2 {
     margin: 0;
-    color: #f05454;
+    color: #f05454; /* צבע כותרות */
 }
 
 a {
@@ -32,164 +39,164 @@ ul {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
-    background-color: rgba(30, 30, 30, 0.95);
+    padding: 1px 20px;
+    background-color: rgba(30, 30, 30, 0.95); /* רקע כהה עם שקיפות */
+    color: #f0f0f0; /* צבע טקסט */
     position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    z-index: 1000;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    z-index: 1000; /* תמיד מעל הכל */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7); /* צל מודגש */
+    box-sizing: border-box; /* הכללת פדינג ברוחב */
+    overflow-x: hidden; /* מניעת גלישה של התפריט */
 }
 
 .logo img {
     width: 100px;
+    height: auto;
 }
 
 .nav ul {
     display: flex;
     gap: 15px;
+    white-space: nowrap; /* שמירה על שורה אחת */
 }
 
 .nav ul li a {
     font-size: 1rem;
     padding: 8px 12px;
-    transition: background 0.3s, color 0.3s;
+    border-radius: 5px;
+    transition: background 0.3s ease, color 0.3s ease;
+    white-space: nowrap;
+    color: #f0f0f0; /* צבע טקסט */
 }
 
 .nav ul li a:hover {
-    background-color: #333;
-    color: #00f7ff;
+    background-color: #333333; /* רקע כהה יותר */
+    color: #00f7ff; /* כחול זוהר */
 }
 
-/* התאמה לנייד */
+/* תפריט המבורגר לנייד */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+.hamburger div {
+    width: 25px;
+    height: 3px;
+    background-color: #f0f0f0;
+    margin: 3px 0;
+    transition: all 0.3s ease;
+}
+
+/* מניעת גלישת האלמנטים מהתפריט */
 @media (max-width: 768px) {
     .header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    .nav {
+        display: none;
         flex-direction: column;
-        padding: 10px;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        background-color: rgba(30, 30, 30, 0.95);
+        z-index: 999;
     }
 
     .nav ul {
         flex-direction: column;
-        align-items: flex-start;
         gap: 10px;
+        padding: 10px;
     }
 
-    .nav ul li a {
-        width: 100%;
-        display: block;
+    .nav.active {
+        display: flex;
     }
 }
 
-/* אזור הגיבור */
+/* אזור גיבור */
 .hero {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: row;
     height: 100vh;
-    background: linear-gradient(135deg, #1a1a1a, #121212);
+    background: linear-gradient(135deg, #1a1a1a, #121212); /* רקע שחור עם גרדיאנט */
+    width: 100%;
+    position: relative;
+    overflow: hidden;
 }
 
 .hero-content {
-    flex: 1;
+    width: 35%;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: rgba(0, 0, 0, 0.7);
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 20, 0.7));
     color: #f0f0f0;
     padding: 20px;
     text-align: center;
+    clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+    z-index: 2;
 }
 
 .hero-content h1 {
     font-size: 2.5rem;
+    margin-bottom: 15px;
 }
 
 .hero-content p {
     font-size: 1.2rem;
+    margin-bottom: 20px;
 }
 
 .hero-content .btn {
     padding: 10px 20px;
     background-color: #f05454;
     color: white;
+    text-decoration: none;
     border-radius: 25px;
     font-size: 1rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.hero-content .btn:hover {
+    background-color: #d32f2f;
+    transform: scale(1.1);
 }
 
 .hero-image {
-    flex: 1;
-    background: url("public/images/hero-image.jpg") center/cover;
-    height: 100%;
+    width: 65%;
+    background-size: cover;
+    background-position: center;
+    clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);
+    position: relative;
 }
 
-/* התאמה לנייד עבור אזור גיבור */
-@media (max-width: 768px) {
-    .hero {
-        flex-direction: column;
-        height: auto;
-    }
-
-    .hero-content h1 {
-        font-size: 1.8rem;
-    }
-
-    .hero-content p {
-        font-size: 1rem;
-    }
-
-    .hero-image {
-        height: 300px;
-    }
+/* שטח החוצץ */
+.hero-divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 35%;
+    right: 65%;
+    background: linear-gradient(135deg, #333333, #1a1a1a); /* מעבר כהה */
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    z-index: 1;
+    transition: background 0.5s ease;
 }
 
-/* קרוסלת פרויקטים */
-.carousel-container {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    padding: 20px;
-}
-
-.carousel img {
-    border-radius: 10px;
-    width: 100%;
-    height: auto;
-}
-
-/* קרוסלת המלצות */
-.testimonial-carousel {
-    display: flex;
-    overflow-x: auto;
-    gap: 15px;
-    padding: 20px;
-}
-
-.testimonial-card {
-    min-width: 250px;
-    background-color: #222;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-}
-
-/* התאמה לנייד עבור קרוסלה */
-@media (max-width: 768px) {
-    .carousel img {
-        max-height: 200px;
-    }
-
-    .testimonial-card {
-        min-width: 100%;
-    }
-}
-
-/* Footer */
-.footer {
-    text-align: center;
-    padding: 10px;
-    background: #121212;
-    color: #f0f0f0;
-}
 
 
 
