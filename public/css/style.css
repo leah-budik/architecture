@@ -64,46 +64,59 @@ ul {
 .hamburger {
     display: none;
     flex-direction: column;
-    justify-content: space-around;
-    width: 30px;
-    height: 30px;
     cursor: pointer;
-    z-index: 1100;
 }
 
 .hamburger div {
-    width: 100%;
+    width: 25px;
     height: 3px;
     background-color: #f0f0f0;
-    transition: all 0.3s ease;
+    margin: 4px 0;
 }
 
-.hamburger.active div:nth-child(1) {
-    transform: rotate(45deg) translateY(8px);
+/* אזור גיבור */
+.hero {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    background: linear-gradient(135deg, #1a1a1a, #121212);
+    overflow: hidden;
 }
 
-.hamburger.active div:nth-child(2) {
-    opacity: 0;
+.hero-content {
+    width: 35%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 20, 0.7));
+    text-align: center;
+    clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+    padding: 20px;
+    z-index: 2;
 }
 
-.hamburger.active div:nth-child(3) {
-    transform: rotate(-45deg) translateY(-8px);
+.hero-image {
+    width: 65%;
+    background-size: cover;
+    background-position: center;
+    clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);
 }
 
 /* התאמה לנייד */
 @media (max-width: 768px) {
     .hero {
-        flex-direction: row;
-        height: 60vh;
+        flex-direction: row; /* נשאר אופקי */
+        height: 60vh; /* גובה מצומצם לפרופורציה מותאמת */
     }
 
     .hero-content {
-        width: 40%;
+        width: 40%; /* נשאר יחסי אבל קטן במעט */
         padding: 10px;
     }
 
     .hero-content h1 {
-        font-size: 1.8rem;
+        font-size: 1.8rem; /* קטן מעט בנייד */
     }
 
     .hero-content p {
@@ -111,7 +124,7 @@ ul {
     }
 
     .hero-image {
-        width: 60%;
+        width: 60%; /* שומר על יחס מתאים */
     }
 
     .hamburger {
@@ -126,7 +139,6 @@ ul {
         left: 0;
         width: 100%;
         background: rgba(30, 30, 30, 0.95);
-        z-index: 1000;
     }
 
     .nav.active {
@@ -139,7 +151,6 @@ ul {
         padding: 10px;
     }
 }
-
 
 
 
@@ -707,4 +718,3 @@ body.gallery-page-body > main.gallery-page {
     box-shadow: 0 0 20px #00f7ff;
     opacity: 1;
 }
-
