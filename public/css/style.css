@@ -45,64 +45,34 @@ ul {
     width: 60px;
 }
 
-/* עיצוב כפתור ההמבורגר */
+.nav ul {
+    display: flex;
+    gap: 15px;
+}
+
+.nav ul li a {
+    font-size: 1rem;
+    padding: 8px 12px;
+}
+
+.nav ul li a:hover {
+    background-color: #333333;
+    color: #00f7ff;
+}
+
+/* המבורגר */
 .hamburger {
     display: none;
     flex-direction: column;
-    justify-content: space-around;
-    width: 30px;
-    height: 30px;
     cursor: pointer;
-    z-index: 1100;
 }
 
 .hamburger div {
-    width: 100%;
+    width: 25px;
     height: 3px;
     background-color: #f0f0f0;
-    transition: all 0.3s ease;
+    margin: 4px 0;
 }
-
-.hamburger.active div:nth-child(1) {
-    transform: rotate(45deg) translateY(8px);
-}
-
-.hamburger.active div:nth-child(2) {
-    opacity: 0;
-}
-
-.hamburger.active div:nth-child(3) {
-    transform: rotate(-45deg) translateY(-8px);
-}
-
-/* עיצוב תפריט */
-.nav {
-    display: none;
-    flex-direction: column;
-    position: absolute;
-    top: 60px;
-    left: 0;
-    width: 100%;
-    background: rgba(30, 30, 30, 0.95);
-    z-index: 1000;
-}
-
-.nav.show {
-    display: flex;
-}
-
-@media (max-width: 768px) {
-    .hamburger {
-        display: flex;
-    }
-
-    .nav ul {
-        flex-direction: column;
-        gap: 10px;
-        padding: 10px;
-    }
-}
-
 
 /* אזור גיבור */
 .hero {
