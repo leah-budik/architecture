@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     testimonials.forEach(paragraph => {
         const fullText = paragraph.textContent.trim();
-        const maxLength = 500;
+        const maxLength = 250;
 
         if (fullText.length > maxLength) {
             const shortText = fullText.slice(0, maxLength) + "...";
