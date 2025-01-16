@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     // --- פונקציונליות להחלפת התמונות ---
-    const images = [
+     const images = [
         './public/images/a/1.jpg',
         './public/images/a/2.jpg',
         './public/images/a/3.jpg',
@@ -8,12 +8,22 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
     let currentIndex = 0;
     const heroImageElement = document.querySelector('.hero-image');
-
+    
     const updateHeroImage = () => {
-        heroImageElement.style.backgroundImage = `url(${images[currentIndex]})`;
-        currentIndex = (currentIndex + 1) % images.length;
+        // הוספת מחלקה של עמעום
+        heroImageElement.classList.add('fade-out');
+    
+        setTimeout(() => {
+            // שינוי התמונה אחרי שהנוכחית מוחשכת חלקית
+            heroImageElement.style.backgroundImage = `url(${images[currentIndex]})`;
+            currentIndex = (currentIndex + 1) % images.length;
+    
+            // הסרת מחלקת העמעום (מראה את התמונה הבאה)
+            heroImageElement.classList.remove('fade-out');
+        }, 500); // הזמן צריך להתאים לאנימציה ב-CSS
     };
-
+    
+    // שינוי תמונה כל 3 שניות
     setInterval(updateHeroImage, 3000);
     updateHeroImage();
 
