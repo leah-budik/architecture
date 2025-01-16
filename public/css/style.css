@@ -173,10 +173,16 @@ ul {
 }
 
 .hero-image {
+    position: relative;
     width: 65%;
     background-size: cover;
     background-position: center;
     clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);
+    transition: opacity 0.5s ease-in-out; /* מעברים חלקים */
+}
+
+.hero-image.fade-out {
+    opacity: 0.1; /* תמונה נוכחית מוחשכת */
 }
 
 /* התאמה לנייד */
