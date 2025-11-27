@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>פאנל ניהול | לאה בודיק</title>
+    <link rel="icon" href="/public/images/logo/main-1764198968977.jpeg" type="image/jpeg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+    <!-- Skip to Main Content - Accessibility -->
+    <a href="#main-content" class="skip-link">דלג לתוכן המרכזי</a>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar" role="complementary" aria-label="תפריט ניהול">
+        <div class="sidebar__header">
+            <img src="/public/images/logo/main-1764198968977.jpeg" alt="" class="sidebar__logo" data-logo="main" aria-hidden="true">
+            <span class="sidebar__title">פאנל ניהול</span>
+        </div>
+
+        <nav class="sidebar__nav" role="navigation" aria-label="ניווט פאנל ניהול">
+            <a href="#dashboard" class="sidebar__link active" data-section="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                <span>דף הבית</span>
+            </a>
+            <a href="#logo" class="sidebar__link" data-section="logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                </svg>
+                <span>לוגו</span>
+            </a>
+            <a href="#hero" class="sidebar__link" data-section="hero">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="M21 15l-5-5L5 21"/>
+                </svg>
+                <span>תמונות ראשיות</span>
+            </a>
+            <a href="#about" class="sidebar__link" data-section="about">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 16v-4M12 8h.01"/>
+                </svg>
+                <span>אודות</span>
+            </a>
+            <a href="#galleries" class="sidebar__link" data-section="galleries">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                </svg>
+                <span>גלריות</span>
+            </a>
+            <a href="#testimonials" class="sidebar__link" data-section="testimonials">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                </svg>
+                <span>המלצות</span>
+            </a>
+            <a href="#contact" class="sidebar__link" data-section="contact">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                </svg>
+                <span>יצירת קשר</span>
+            </a>
+            <a href="#quotes" class="sidebar__link" data-section="quotes">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/>
+                    <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>
+                </svg>
+                <span>ציטוטים</span>
+            </a>
+            <a href="#footer" class="sidebar__link" data-section="footer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19h16M4 15h16M4 11h16"/>
+                </svg>
+                <span>פוטר</span>
+            </a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a href="/" class="sidebar__link sidebar__link--external" target="_blank">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/>
+                </svg>
+                <span>צפה באתר</span>
+            </a>
+            <button class="sidebar__link sidebar__link--logout" id="logout-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+                </svg>
+                <span>התנתק</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <button class="mobile-header__toggle" id="sidebar-toggle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12h18M3 6h18M3 18h18"/>
+            </svg>
+        </button>
+        <span class="mobile-header__title">פאנל ניהול</span>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content" role="main">
+        <!-- Dashboard Section -->
+        <section class="content-section active" id="section-dashboard">
+            <div class="section-header">
+                <h1 class="section-title">ברוכה הבאה לפאנל הניהול</h1>
+                <p class="section-subtitle">מכאן תוכלי לנהל את כל תכני האתר</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="dashboard-card" onclick="showSection('galleries')">
+                    <div class="dashboard-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                        </svg>
+                    </div>
+                    <div class="dashboard-card__content">
+                        <h3 class="dashboard-card__title">גלריות</h3>
+                        <p class="dashboard-card__text">ניהול פרויקטים ותמונות</p>
+                        <span class="dashboard-card__count" id="galleries-count">0</span>
+                    </div>
+                </div>
+
+                <div class="dashboard-card" onclick="showSection('testimonials')">
+                    <div class="dashboard-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                        </svg>
+                    </div>
+                    <div class="dashboard-card__content">
+                        <h3 class="dashboard-card__title">המלצות</h3>
+                        <p class="dashboard-card__text">ניהול חוות דעת לקוחות</p>
+                        <span class="dashboard-card__count" id="testimonials-count">0</span>
+                    </div>
+                </div>
+
+                <div class="dashboard-card" onclick="showSection('hero')">
+                    <div class="dashboard-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <path d="M21 15l-5-5L5 21"/>
+                        </svg>
+                    </div>
+                    <div class="dashboard-card__content">
+                        <h3 class="dashboard-card__title">תמונות ראשיות</h3>
+                        <p class="dashboard-card__text">ניהול סליידר הבית</p>
+                        <span class="dashboard-card__count" id="hero-count">0</span>
+                    </div>
+                </div>
+
+                <div class="dashboard-card" onclick="showSection('about')">
+                    <div class="dashboard-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 16v-4M12 8h.01"/>
+                        </svg>
+                    </div>
+                    <div class="dashboard-card__content">
+                        <h3 class="dashboard-card__title">אודות</h3>
+                        <p class="dashboard-card__text">עריכת טקסט האודות</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Logo Section -->
+        <section class="content-section" id="section-logo">
+            <div class="section-header">
+                <h1 class="section-title">לוגו</h1>
+                <p class="section-subtitle">ניהול לוגו האתר</p>
+            </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h2 class="card__title">לוגו ראשי</h2>
+                </div>
+                <div class="card__body">
+                    <p class="form-help-text">הלוגו הראשי מוצג בכותרת האתר בכל הדפים. מומלץ להעלות תמונת PNG עם רקע שקוף.</p>
+
+                    <div class="logo-preview-container">
+                        <div class="logo-preview" id="main-logo-preview">
+                            <img src="" alt="לוגו ראשי" id="main-logo-img">
+                            <div class="logo-preview__empty" id="main-logo-empty">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <path d="M21 15l-5-5L5 21"/>
+                                </svg>
+                                <span>אין לוגו</span>
+                            </div>
+                        </div>
+                        <div class="logo-actions">
+                            <button class="btn btn--primary" onclick="document.getElementById('main-logo-upload').click()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                                </svg>
+                                העלה לוגו חדש
+                            </button>
+                            <input type="file" id="main-logo-upload" accept="image/png,image/svg+xml,image/jpeg,image/webp" style="display:none" onchange="uploadLogo('main', this)">
+                            <button class="btn btn--secondary btn--danger" id="delete-main-logo" onclick="deleteLogo('main')" style="display:none">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                מחק לוגו
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h2 class="card__title">לוגו לרקע בהיר (אופציונלי)</h2>
+                </div>
+                <div class="card__body">
+                    <p class="form-help-text">לוגו חלופי לשימוש ברקע בהיר. אם לא מוגדר, ישתמש בלוגו הראשי.</p>
+
+                    <div class="logo-preview-container">
+                        <div class="logo-preview logo-preview--light" id="light-logo-preview">
+                            <img src="" alt="לוגו לרקע בהיר" id="light-logo-img">
+                            <div class="logo-preview__empty" id="light-logo-empty">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <path d="M21 15l-5-5L5 21"/>
+                                </svg>
+                                <span>לא מוגדר</span>
+                            </div>
+                        </div>
+                        <div class="logo-actions">
+                            <button class="btn btn--primary" onclick="document.getElementById('light-logo-upload').click()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                                </svg>
+                                העלה לוגו
+                            </button>
+                            <input type="file" id="light-logo-upload" accept="image/png,image/svg+xml,image/jpeg,image/webp" style="display:none" onchange="uploadLogo('light', this)">
+                            <button class="btn btn--secondary btn--danger" id="delete-light-logo" onclick="deleteLogo('light')" style="display:none">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                מחק
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h2 class="card__title">פביקון (אייקון הדפדפן)</h2>
+                </div>
+                <div class="card__body">
+                    <p class="form-help-text">האייקון שמופיע בלשונית הדפדפן. מומלץ תמונה ריבועית בגודל 32x32 או 64x64 פיקסלים.</p>
+
+                    <div class="logo-preview-container">
+                        <div class="logo-preview logo-preview--favicon" id="favicon-preview">
+                            <img src="" alt="פביקון" id="favicon-img">
+                            <div class="logo-preview__empty" id="favicon-empty">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="32" height="32">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                </svg>
+                                <span>לא מוגדר</span>
+                            </div>
+                        </div>
+                        <div class="logo-actions">
+                            <button class="btn btn--primary" onclick="document.getElementById('favicon-upload').click()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                                </svg>
+                                העלה פביקון
+                            </button>
+                            <input type="file" id="favicon-upload" accept="image/png,image/x-icon,image/svg+xml" style="display:none" onchange="uploadLogo('favicon', this)">
+                            <button class="btn btn--secondary btn--danger" id="delete-favicon" onclick="deleteLogo('favicon')" style="display:none">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                מחק
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hero Section -->
+        <section class="content-section" id="section-hero">
+            <div class="section-header">
+                <h1 class="section-title">תמונות ראשיות</h1>
+                <p class="section-subtitle">ניהול תמונות הסליידר בעמוד הבית</p>
+            </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h2 class="card__title">כותרות וטקסטים</h2>
+                </div>
+                <div class="card__body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">כותרת משנה</label>
+                            <input type="text" class="form-input" id="hero-subtitle" placeholder="אדריכלות ועיצוב פנים">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">כותרת שורה 1</label>
+                            <input type="text" class="form-input" id="hero-title-1" placeholder="מעצבים">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">כותרת שורה 2</label>
+                            <input type="text" class="form-input" id="hero-title-2" placeholder="חלומות">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">תיאור</label>
+                        <textarea class="form-textarea" id="hero-description" rows="3" placeholder="תכנון חכם, ניצול חללים..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">טקסט כפתור</label>
+                        <input type="text" class="form-input" id="hero-cta" placeholder="גלה את הפרויקטים">
+                    </div>
+                    <button class="btn btn--primary" onclick="saveHeroText()">שמור שינויים</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h2 class="card__title">תמונות סליידר</h2>
+                    <button class="btn btn--small" onclick="document.getElementById('hero-upload').click()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                        </svg>
+                        הוסף תמונה
+                    </button>
+                    <input type="file" id="hero-upload" accept="image/*" style="display:none" onchange="uploadHeroImage(this)">
+                </div>
+                <div class="card__body">
+                    <div class="images-grid" id="hero-images-grid">
+                        <!-- Images loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="content-section" id="section-about">
+            <div class="section-header">
+                <h1 class="section-title">אודות</h1>
+                <p class="section-subtitle">עריכת קטע האודות באתר</p>
+            </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h2 class="card__title">תוכן האודות</h2>
+                </div>
+                <div class="card__body">
+                    <div class="form-group">
+                        <label class="form-label">כותרת משנה</label>
+                        <input type="text" class="form-input" id="about-label" placeholder="אודות הסטודיו">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">כותרת ראשית</label>
+                        <input type="text" class="form-input" id="about-title" placeholder="מעצבים את החלום שלך למציאות">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">משפט פתיחה</label>
+                        <input type="text" class="form-input" id="about-lead" placeholder="שמי לאה בודיק...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">פסקה ראשונה</label>
+                        <textarea class="form-textarea" id="about-text" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">פסקה נוספת (מוסתרת - "קרא עוד")</label>
+                        <textarea class="form-textarea" id="about-more" rows="6"></textarea>
+                    </div>
+
+                    <h3 class="form-section-title">סטטיסטיקות</h3>
+                    <div class="form-row form-row--3">
+                        <div class="form-group">
+                            <label class="form-label">מספר 1</label>
+                            <input type="text" class="form-input" id="about-stat-1-num" placeholder="7+">
+                            <input type="text" class="form-input mt-8" id="about-stat-1-label" placeholder="שנות ניסיון">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">מספר 2</label>
+                            <input type="text" class="form-input" id="about-stat-2-num" placeholder="150+">
+                            <input type="text" class="form-input mt-8" id="about-stat-2-label" placeholder="פרויקטים">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">מספר 3</label>
+                            <input type="text" class="form-input" id="about-stat-3-num" placeholder="100%">
+                            <input type="text" class="form-input mt-8" id="about-stat-3-label" placeholder="שביעות רצון">
+                        </div>
+                    </div>
+
+                    <button class="btn btn--primary" onclick="saveAbout()">שמור שינויים</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Galleries Section -->
+        <section class="content-section" id="section-galleries">
+            <div class="section-header">
+                <h1 class="section-title">גלריות</h1>
+                <p class="section-subtitle">ניהול פרויקטים וקטגוריות</p>
+            </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h2 class="card__title">רשימת גלריות</h2>
+                    <button class="btn btn--primary btn--small" onclick="showAddGalleryModal()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        גלריה חדשה
+                    </button>
+                </div>
+                <div class="card__body">
+                    <div class="galleries-list" id="galleries-list">
+                        <!-- Galleries loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery Edit Panel -->
+            <div class="card" id="gallery-edit-panel" style="display:none">
+                <div class="card__header">
+                    <h2 class="card__title" id="gallery-edit-title">עריכת גלריה</h2>
+                    <button class="btn btn--small btn--secondary" onclick="closeGalleryEdit()">סגור</button>
+                </div>
+                <div class="card__body">
+                    <input type="hidden" id="edit-gallery-id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">שם הגלריה</label>
+                            <input type="text" class="form-input" id="edit-gallery-name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">קטגוריה</label>
+                            <input type="text" class="form-input" id="edit-gallery-category">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">תיאור</label>
+                        <textarea class="form-textarea" id="edit-gallery-description" rows="2"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <input type="checkbox" id="edit-gallery-active"> גלריה פעילה
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">
+                                <input type="checkbox" id="edit-gallery-featured"> הצג בעמוד הבית
+                            </label>
+                        </div>
+                    </div>
+                    <button class="btn btn--primary" onclick="saveGalleryDetails()">שמור פרטים</button>
+
+                    <hr class="divider">
+
+                    <div class="gallery-images-header">
+                        <h3>תמונות בגלריה</h3>
+                        <button class="btn btn--small" onclick="document.getElementById('gallery-images-upload').click()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                            </svg>
+                            העלה תמונות
+                        </button>
+                        <input type="file" id="gallery-images-upload" accept="image/*" multiple style="display:none" onchange="uploadGalleryImages(this)">
+                    </div>
+                    <div class="images-grid" id="gallery-images-grid">
+                        <!-- Images loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section class="content-section" id="section-testimonials">
+            <div class="section-header">
+                <h1 class="section-title">המלצות</h1>
+                <p class="section-subtitle">ניהול חוות דעת לקוחות</p>
+            </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h2 class="card__title">רשימת המלצות</h2>
+                    <button class="btn btn--primary btn--small" onclick="showAddTestimonialModal()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        המלצה חדשה
+                    </button>
+                </div>
+                <div class="card__body">
+                    <div class="testimonials-list" id="testimonials-list">
+                        <!-- Testimonials loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="content-section" id="section-contact">
+            <div class="section-header">
+                <h1 class="section-title">יצירת קשר</h1>
+                <p class="section-subtitle">עריכת פרטי התקשרות</p>
+            </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h2 class="card__title">פרטי התקשרות</h2>
+                </div>
+                <div class="card__body">
+                    <div class="form-group">
+                        <label class="form-label">כותרת משנה</label>
+                        <input type="text" class="form-input" id="contact-label">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">כותרת ראשית</label>
+                        <input type="text" class="form-input" id="contact-title">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">תיאור</label>
+                        <textarea class="form-textarea" id="contact-description" rows="3"></textarea>
+                    </div>
+
+                    <hr class="divider">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">וואטסאפ (מספר מלא)</label>
+                            <input type="text" class="form-input" id="contact-whatsapp" placeholder="+972533111357">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">תצוגה</label>
+                            <input type="text" class="form-input" id="contact-whatsapp-display" placeholder="053-311-1357">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">טלפון</label>
+                            <input type="text" class="form-input" id="contact-phone" placeholder="0533111357">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">תצוגה</label>
+                            <input type="text" class="form-input" id="contact-phone-display" placeholder="053-311-1357">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">אימייל</label>
+                        <input type="email" class="form-input" id="contact-email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">טקסט ויזואלי (שורות מופרדות בירידת שורה)</label>
+                        <textarea class="form-textarea" id="contact-visual" rows="3" placeholder="בואו&#10;ניצור&#10;יחד"></textarea>
+                    </div>
+
+                    <button class="btn btn--primary" onclick="saveContact()">שמור שינויים</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quotes Section -->
+        <section class="content-section" id="section-quotes">
+            <div class="section-header">
+                <h1 class="section-title">ציטוטים</h1>
+                <p class="section-subtitle">עריכת ציטוטים באתר</p>
+            </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h2 class="card__title">ציטוט ראשון</h2>
+                </div>
+                <div class="card__body">
+                    <div class="form-group">
+                        <label class="form-label">טקסט הציטוט</label>
+                        <textarea class="form-textarea" id="quote-1-text" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">מחבר</label>
+                        <input type="text" class="form-input" id="quote-1-author">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h2 class="card__title">ציטוט שני</h2>
+                </div>
+                <div class="card__body">
+                    <div class="form-group">
+                        <label class="form-label">טקסט הציטוט</label>
+                        <textarea class="form-textarea" id="quote-2-text" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">מחבר</label>
+                        <input type="text" class="form-input" id="quote-2-author">
+                    </div>
+                    <button class="btn btn--primary" onclick="saveQuotes()">שמור ציטוטים</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer Section -->
+        <section class="content-section" id="section-footer">
+            <div class="section-header">
+                <h1 class="section-title">פוטר</h1>
+                <p class="section-subtitle">עריכת תחתית האתר</p>
+            </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h2 class="card__title">תוכן הפוטר</h2>
+                </div>
+                <div class="card__body">
+                    <div class="form-group">
+                        <label class="form-label">תיאור תחת הלוגו</label>
+                        <input type="text" class="form-input" id="footer-tagline" placeholder="אדריכלות ועיצוב פנים">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">זכויות יוצרים</label>
+                        <input type="text" class="form-input" id="footer-copyright" placeholder="© 2024 לאה בודיק. כל הזכויות שמורות.">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">שם מפתח האתר</label>
+                            <input type="text" class="form-input" id="footer-credit-name" placeholder="ישראל בודיק">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">טלפון מפתח</label>
+                            <input type="text" class="form-input" id="footer-credit-phone" placeholder="0534807140">
+                        </div>
+                    </div>
+
+                    <button class="btn btn--primary" onclick="saveFooter()">שמור שינויים</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for Adding/Editing -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal" id="modal">
+            <div class="modal__header">
+                <h2 class="modal__title" id="modal-title">כותרת</h2>
+                <button class="modal__close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal__body" id="modal-body">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <svg class="toast__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span class="toast__message" id="toast-message"></span>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading" id="loading">
+        <div class="loading__spinner"></div>
+    </div>
+
+    <script src="/admin/admin.js"></script>
+</body>
+</html>

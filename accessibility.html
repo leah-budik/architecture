@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="הצהרת נגישות - לאה בודיק אדריכלות ועיצוב פנים. האתר בנוי בהתאם לתקן הישראלי 5568 ותקני WCAG 2.0 AA.">
+    <title>הצהרת נגישות | לאה בודיק</title>
+    <link rel="icon" href="public/images/logo/favicon-1764199575531.jpeg" type="image/jpeg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="public/css/style.css">
+    <style>
+        .accessibility-page {
+            padding-top: calc(var(--header-height) + var(--space-12));
+            padding-bottom: var(--space-16);
+            min-height: 100vh;
+        }
+
+        .accessibility-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .accessibility-content h1 {
+            font-size: var(--text-4xl);
+            margin-bottom: var(--space-8);
+            color: var(--color-white);
+        }
+
+        .accessibility-content h2 {
+            font-size: var(--text-2xl);
+            margin-top: var(--space-10);
+            margin-bottom: var(--space-4);
+            color: var(--color-white);
+            border-bottom: 1px solid var(--color-gray-800);
+            padding-bottom: var(--space-3);
+        }
+
+        .accessibility-content h3 {
+            font-size: var(--text-xl);
+            margin-top: var(--space-6);
+            margin-bottom: var(--space-3);
+            color: var(--color-accent);
+        }
+
+        .accessibility-content p {
+            margin-bottom: var(--space-4);
+            line-height: var(--leading-relaxed);
+            color: var(--color-gray-300);
+        }
+
+        .accessibility-content ul {
+            margin-bottom: var(--space-6);
+            padding-right: var(--space-6);
+        }
+
+        .accessibility-content li {
+            margin-bottom: var(--space-2);
+            line-height: var(--leading-relaxed);
+            color: var(--color-gray-300);
+            list-style-type: disc;
+        }
+
+        .accessibility-content a {
+            color: var(--color-accent);
+            text-decoration: underline;
+        }
+
+        .accessibility-content a:hover {
+            color: var(--color-accent-light);
+        }
+
+        .contact-box {
+            background: var(--color-dark);
+            border: 1px solid var(--color-gray-800);
+            padding: var(--space-6);
+            margin: var(--space-6) 0;
+        }
+
+        .contact-box h3 {
+            margin-top: 0;
+        }
+
+        .contact-box p {
+            margin-bottom: var(--space-2);
+        }
+
+        .contact-box a {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .update-date {
+            background: var(--color-accent-subtle);
+            border-right: 3px solid var(--color-accent);
+            padding: var(--space-4);
+            margin: var(--space-6) 0;
+            color: var(--color-gray-200);
+        }
+
+        .standard-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            background: var(--color-gray-800);
+            padding: var(--space-2) var(--space-4);
+            margin: var(--space-2) 0;
+            font-size: var(--text-sm);
+            color: var(--color-gray-200);
+        }
+    </style>
+</head>
+<body>
+    <!-- Skip to Main Content - Accessibility -->
+    <a href="#main-content" class="skip-link">דלג לתוכן המרכזי</a>
+
+    <!-- Header -->
+    <header class="header" id="header" role="banner">
+        <div class="logo">
+            <a href="index.html" class="logo__link">
+                <img src="public/images/logo/main-1764198968977.jpeg" alt="לאה בודיק - לוגו" class="logo__image">
+                <span class="logo__text">לאה בודיק</span>
+            </a>
+        </div>
+
+        <!-- Desktop Navigation -->
+        <nav class="nav" id="nav" role="navigation" aria-label="ניווט ראשי">
+            <ul class="nav__list">
+                <li class="nav__item"><a href="index.html" class="nav__link">בית</a></li>
+                <li class="nav__item"><a href="index.html#about" class="nav__link">אודות</a></li>
+                <li class="nav__item"><a href="index.html#projects" class="nav__link">פרויקטים</a></li>
+                <li class="nav__item"><a href="index.html#testimonials" class="nav__link">המלצות</a></li>
+                <li class="nav__item"><a href="index.html#contact" class="nav__link">צור קשר</a></li>
+            </ul>
+        </nav>
+
+        <!-- Mobile Menu Button -->
+        <button class="hamburger" id="hamburger" aria-label="פתח תפריט ניווט" aria-expanded="false" aria-controls="mobile-nav">
+            <span class="hamburger__line" aria-hidden="true"></span>
+            <span class="hamburger__line" aria-hidden="true"></span>
+            <span class="hamburger__line" aria-hidden="true"></span>
+        </button>
+    </header>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav-overlay" id="mobile-nav-overlay" aria-hidden="true"></div>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav" id="mobile-nav" role="navigation" aria-label="תפריט ניווט ראשי" aria-hidden="true">
+        <div class="mobile-nav__header">
+            <img src="public/images/logo/main-1764198968977.jpeg" alt="" class="mobile-nav__logo" aria-hidden="true">
+            <button class="mobile-nav__close" id="mobile-nav-close" aria-label="סגור תפריט ניווט">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <ul class="mobile-nav__list">
+            <li class="mobile-nav__item"><a href="index.html" class="mobile-nav__link">בית</a></li>
+            <li class="mobile-nav__item"><a href="index.html#about" class="mobile-nav__link">אודות</a></li>
+            <li class="mobile-nav__item"><a href="index.html#projects" class="mobile-nav__link">פרויקטים</a></li>
+            <li class="mobile-nav__item"><a href="index.html#testimonials" class="mobile-nav__link">המלצות</a></li>
+            <li class="mobile-nav__item"><a href="index.html#contact" class="mobile-nav__link">צור קשר</a></li>
+        </ul>
+        <div class="mobile-nav__footer">
+            <p class="mobile-nav__tagline">אדריכלות ועיצוב פנים</p>
+            <div class="mobile-nav__contact">
+                <a href="https://wa.me/+972533111357" target="_blank" rel="noopener noreferrer" class="mobile-nav__contact-link" aria-label="וואטסאפ">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                </a>
+                <a href="tel:0533111357" class="mobile-nav__contact-link" aria-label="טלפון">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+                    </svg>
+                </a>
+                <a href="mailto:leah0533111357@gmail.com" class="mobile-nav__contact-link" aria-label="אימייל">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="accessibility-page" id="main-content" role="main">
+        <div class="container">
+            <article class="accessibility-content">
+                <h1>הצהרת נגישות</h1>
+
+                <div class="update-date">
+                    <strong>עדכון אחרון:</strong> נובמבר 2025
+                </div>
+
+                <h2>אודות הנגישות באתר</h2>
+                <p>
+                    <strong>לאה בודיק – אדריכלות ועיצוב פנים</strong> מחויבת להנגשת האתר לאנשים עם מוגבלויות,
+                    בהתאם לחוק שוויון זכויות לאנשים עם מוגבלות, התשנ"ח-1998, ולתקנות שוויון זכויות לאנשים עם מוגבלות
+                    (התאמות נגישות לשירות), התשע"ג-2013.
+                </p>
+
+                <div class="standard-badge">
+                    <span>תקן ישראלי 5568</span>
+                </div>
+                <div class="standard-badge">
+                    <span>WCAG 2.0 AA</span>
+                </div>
+
+                <p>
+                    האתר תואם את דרישות התקן הישראלי (ת"י 5568) המבוסס על הנחיות הנגישות לתכני אינטרנט
+                    WCAG 2.0 ברמת AA.
+                </p>
+
+                <h2>התאמות הנגישות שבוצעו באתר</h2>
+
+                <h3>מבנה ונווּט</h3>
+                <ul>
+                    <li>האתר בנוי במבנה סמנטי תקני (HTML5) עם שימוש נכון בתגיות header, nav, main, section, footer</li>
+                    <li>כל דף מכיל כותרת ראשית (h1) אחת בלבד, והיררכיית כותרות (h2, h3) לוגית</li>
+                    <li>קיים קישור "דלג לתוכן המרכזי" בראש כל דף</li>
+                    <li>תפריט ניווט נגיש עם תוויות ARIA מתאימות</li>
+                    <li>כל הקישורים מנוסחים באופן ברור ומתאר את יעדם</li>
+                </ul>
+
+                <h3>מקלדת ופוקוס</h3>
+                <ul>
+                    <li>ניתן לנווט בכל האתר באמצעות מקלדת בלבד (Tab, Shift+Tab, Enter, Space, Escape)</li>
+                    <li>סדר הפוקוס תואם את הסדר הוויזואלי</li>
+                    <li>כל האלמנטים האינטראקטיביים מקבלים אינדיקציית פוקוס ברורה</li>
+                    <li>תפריט הנייד ניתן לפתיחה וסגירה במקלדת, כולל מקש Escape</li>
+                    <li>תיבת התמונות המוגדלות (Lightbox) נגישה במלואה למקלדת</li>
+                </ul>
+
+                <h3>תצוגה וקריאות</h3>
+                <ul>
+                    <li>יחס ניגודיות צבעים עומד בדרישות WCAG AA (לפחות 4.5:1 לטקסט רגיל)</li>
+                    <li>האתר מותאם להגדלה של עד 200% ללא אובדן תוכן או פונקציונליות</li>
+                    <li>גופנים ברורים וקריאים בגדלים מותאמים</li>
+                    <li>האתר תומך בהעדפות מערכת לצמצום תנועה (prefers-reduced-motion)</li>
+                    <li>האתר מותאם לכיוון קריאה מימין לשמאל (RTL) בעברית</li>
+                </ul>
+
+                <h3>תמונות ומדיה</h3>
+                <ul>
+                    <li>כל התמונות כוללות תיאור חלופי (alt) משמעותי בעברית</li>
+                    <li>תמונות דקורטיביות מסומנות כך שקוראי מסך יתעלמו מהן</li>
+                    <li>גלריות התמונות נגישות למקלדת ולקוראי מסך</li>
+                </ul>
+
+                <h3>טפסים</h3>
+                <ul>
+                    <li>כל שדות הקלט מקושרים לתוויות (labels) מזהות</li>
+                    <li>הודעות שגיאה מוצגות בטקסט ברור ומקושרות לשדה הרלוונטי</li>
+                    <li>שדות חובה מסומנים בבירור</li>
+                </ul>
+
+                <h3>תכנים מיוחדים</h3>
+                <ul>
+                    <li>קרוסלת ההמלצות כוללת כפתורי ניווט נגישים</li>
+                    <li>אזורים דינמיים מסומנים עם ARIA live regions</li>
+                    <li>אייקונים מסומנים ב-aria-hidden כאשר יש להם טקסט מלווה</li>
+                </ul>
+
+                <h2>טכנולוגיות נגישות</h2>
+                <p>האתר נבנה ונבדק באמצעות:</p>
+                <ul>
+                    <li>HTML5 סמנטי</li>
+                    <li>CSS3 עם משתני עיצוב (CSS Custom Properties)</li>
+                    <li>תכונות ARIA (Accessible Rich Internet Applications)</li>
+                    <li>JavaScript ללא תלות בספריות חיצוניות</li>
+                </ul>
+
+                <h2>דפדפנים נתמכים</h2>
+                <p>האתר נבדק ותואם לדפדפנים:</p>
+                <ul>
+                    <li>Google Chrome (גרסה עדכנית)</li>
+                    <li>Mozilla Firefox (גרסה עדכנית)</li>
+                    <li>Microsoft Edge (גרסה עדכנית)</li>
+                    <li>Apple Safari (גרסה עדכנית)</li>
+                    <li>דפדפנים ניידים: Chrome Mobile, Safari Mobile</li>
+                </ul>
+
+                <h2>מסמכים</h2>
+                <p>
+                    האתר אינו מכיל קבצי PDF או מסמכים להורדה. כל התוכן מוצג בפורמט HTML נגיש.
+                </p>
+
+                <h2>מגבלות ידועות</h2>
+                <p>
+                    למיטב ידיעתנו, האתר עומד בכל דרישות הנגישות. אם נתקלתם בבעיית נגישות כלשהי,
+                    נשמח לשמוע ולטפל בהקדם.
+                </p>
+
+                <h2>יצירת קשר בנושא נגישות</h2>
+                <div class="contact-box">
+                    <h3>רכזת נגישות השירות</h3>
+                    <p><strong>שם העסק:</strong> לאה בודיק – אדריכלות ועיצוב פנים</p>
+                    <p>
+                        <strong>טלפון:</strong>
+                        <a href="tel:0533111357" dir="ltr">053-311-1357</a>
+                    </p>
+                    <p>
+                        <strong>דוא"ל:</strong>
+                        <a href="mailto:leah0533111357@gmail.com">leah0533111357@gmail.com</a>
+                    </p>
+                    <p>
+                        <strong>וואטסאפ:</strong>
+                        <a href="https://wa.me/+972533111357" target="_blank" rel="noopener noreferrer">053-311-1357</a>
+                    </p>
+                    <p>
+                        אנו מתחייבים להשיב לפניות בנושא נגישות תוך 14 ימי עסקים.
+                    </p>
+                </div>
+
+                <h2>הגשת תלונה</h2>
+                <p>
+                    אם נתקלתם בבעיית נגישות באתר, ניתן לפנות אלינו באחת מדרכי הקשר המפורטות לעיל.
+                    אם לא קיבלתם מענה הולם, ניתן לפנות לנציב שוויון זכויות לאנשים עם מוגבלות:
+                </p>
+                <ul>
+                    <li>טלפון: <a href="tel:*6763" dir="ltr">*6763</a></li>
+                    <li>אתר: <a href="https://www.gov.il/he/departments/units/commission_for_equal_rights_of_persons_with_disabilities" target="_blank" rel="noopener noreferrer">נציבות שוויון זכויות לאנשים עם מוגבלות</a></li>
+                </ul>
+
+                <h2>מחויבות מתמשכת</h2>
+                <p>
+                    אנו רואים בנגישות ערך מרכזי ומתחייבים להמשיך ולשפר את נגישות האתר באופן שוטף.
+                    ההצהרה מתעדכנת בהתאם לשינויים באתר ובתקנות.
+                </p>
+
+            </article>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+        <div class="container">
+            <div class="footer__container">
+                <div class="footer__brand">
+                    <img src="public/images/logo/main-1764198968977.jpeg" alt="" class="footer__logo" aria-hidden="true">
+                    <p class="footer__tagline">אדריכלות ועיצוב פנים</p>
+                </div>
+
+                <div class="footer__social">
+                    <a href="https://wa.me/+972533111357" target="_blank" rel="noopener noreferrer" class="footer__social-link" aria-label="וואטסאפ">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                        </svg>
+                    </a>
+                    <a href="tel:0533111357" class="footer__social-link" aria-label="טלפון">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+                        </svg>
+                    </a>
+                    <a href="mailto:leah0533111357@gmail.com" class="footer__social-link" aria-label="אימייל">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="footer__info">
+                    <p class="footer__copyright">© 2024 לאה בודיק. כל הזכויות שמורות.</p>
+                    <p class="footer__credit">עוצב ונבנה על ידי <a href="tel:0534807140">ישראל בודיק</a></p>
+                    <p><a href="accessibility.html">הצהרת נגישות</a></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="back-to-top" aria-label="חזרה למעלה">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 19V5M5 12l7-7 7 7"/>
+        </svg>
+    </button>
+
+    <!-- Scripts -->
+    <script src="public/js/script.js"></script>
+</body>
+</html>

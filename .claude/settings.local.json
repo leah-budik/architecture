@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(if not exist \"C:\\Users\\1\\Desktop\\אתר\\public\\images\\gallery-1764197333668\" mkdir \"C:\\Users\\1\\Desktop\\אתר\\public\\images\\gallery-1764197333668\")",
+      "Bash(npm install:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(if not exist \"C:\\Users\\1\\Desktop\\אתר\\models\" mkdir \"C:\\Users\\1\\Desktop\\אתר\\models\")",
+      "Bash(if not exist \"C:\\Users\\1\\Desktop\\אתר\\config\" mkdir \"C:\\Users\\1\\Desktop\\אתר\\config\")",
+      "Bash(mkdir:*)",
+      "Bash(node scripts/migrate-to-cloud.js:*)",
+      "Bash(node server.js:*)",
+      "Bash(timeout /t 5 /nobreak)",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(powershell -Command \"Stop-Process -Id 9932 -Force\")",
+      "Bash(dir \"C:\\Users\\1\\Desktop\\אתר\\data\")",
+      "Bash(dir \"C:\\Users\\1\\Desktop\\אתר\\public\\images\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

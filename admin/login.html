@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>כניסה לפאנל ניהול | לאה בודיק</title>
+    <link rel="icon" href="/public/images/logo/main-1764198968977.jpeg" type="image/jpeg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-black: #0a0a0a;
+            --color-charcoal: #141414;
+            --color-dark: #1a1a1a;
+            --color-gray-800: #2a2a2a;
+            --color-gray-700: #3a3a3a;
+            --color-gray-600: #4a4a4a;
+            --color-gray-400: #8a8a8a;
+            --color-gray-300: #aaaaaa;
+            --color-gray-200: #cccccc;
+            --color-white: #ffffff;
+            --color-accent: #c9a962;
+            --color-accent-light: #d4bc7d;
+            --color-error: #e74c3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: linear-gradient(135deg, var(--color-black) 0%, var(--color-charcoal) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-gray-200);
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--color-dark);
+            border: 1px solid var(--color-gray-800);
+            padding: 48px 40px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-logo {
+            width: 80px;
+            height: auto;
+            margin-bottom: 24px;
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 300;
+            color: var(--color-white);
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            font-size: 14px;
+            color: var(--color-gray-400);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-gray-300);
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--color-gray-800);
+            border: 1px solid var(--color-gray-700);
+            color: var(--color-white);
+            font-family: inherit;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px rgba(201, 169, 98, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--color-gray-600);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--color-accent);
+            color: var(--color-black);
+            border: none;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .submit-btn:hover {
+            background: var(--color-accent-light);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid var(--color-error);
+            color: var(--color-error);
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 24px;
+            color: var(--color-gray-400);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: var(--color-accent);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Skip link for accessibility */
+        .skip-link {
+            position: absolute;
+            top: -100%;
+            right: 16px;
+            z-index: 9999;
+            padding: 16px 24px;
+            background-color: var(--color-accent);
+            color: var(--color-black);
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: top 0.2s ease;
+        }
+
+        .skip-link:focus {
+            top: 16px;
+            outline: 3px solid var(--color-white);
+            outline-offset: 2px;
+        }
+
+        /* Enhanced focus styles */
+        :focus-visible {
+            outline: 3px solid var(--color-accent);
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Skip to Main Content - Accessibility -->
+    <a href="#login-form" class="skip-link">דלג לטופס הכניסה</a>
+
+    <main class="login-container" id="main-content" role="main">
+        <div class="login-card">
+            <div class="login-header">
+                <img src="/public/images/logo/main-1764198968977.jpeg" alt="" class="login-logo" aria-hidden="true">
+                <h1 class="login-title">פאנל ניהול</h1>
+                <p class="login-subtitle">אנא התחבר כדי להמשיך</p>
+            </div>
+
+            <div class="error-message" id="error-message" role="alert" aria-live="polite"></div>
+
+            <form id="login-form" aria-label="טופס כניסה לפאנל ניהול">
+                <div class="form-group">
+                    <label class="form-label" for="username">שם משתמש</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        class="form-input"
+                        placeholder="הזן שם משתמש"
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">סיסמה</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="form-input"
+                        placeholder="הזן סיסמה"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <button type="submit" class="submit-btn" id="submit-btn">
+                    <span id="btn-text">כניסה</span>
+                </button>
+            </form>
+
+            <a href="/" class="back-link">← חזרה לאתר</a>
+        </div>
+    </main>
+
+    <script>
+        const form = document.getElementById('login-form');
+        const errorMessage = document.getElementById('error-message');
+        const submitBtn = document.getElementById('submit-btn');
+        const btnText = document.getElementById('btn-text');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Show loading state
+            submitBtn.disabled = true;
+            btnText.innerHTML = 'מתחבר... <span class="spinner"></span>';
+            errorMessage.classList.remove('show');
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    window.location.href = '/admin';
+                } else {
+                    errorMessage.textContent = data.error || 'שגיאה בהתחברות';
+                    errorMessage.classList.add('show');
+                }
+            } catch (error) {
+                errorMessage.textContent = 'שגיאה בחיבור לשרת';
+                errorMessage.classList.add('show');
+            } finally {
+                submitBtn.disabled = false;
+                btnText.textContent = 'כניסה';
+            }
+        });
+    </script>
+</body>
+</html>

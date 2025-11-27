@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="גלריה - עיצוב פנים יוקרתי על ידי לאה בודיק">
+    <title>גלריה | לאה בודיק</title>
+    <link rel="icon" href="/public/images/logo/main-1764198968977.jpeg" type="image/jpeg" id="favicon">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/public/css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="logo">
+            <a href="/" class="logo__link">
+                <img src="/public/images/logo/main-1764198968977.jpeg" alt="לאה בודיק" class="logo__image" data-logo="main">
+                <span class="logo__text">לאה בודיק</span>
+            </a>
+        </div>
+
+        <!-- Desktop Navigation -->
+        <nav class="nav" id="nav">
+            <ul class="nav__list">
+                <li class="nav__item"><a href="/" class="nav__link">בית</a></li>
+                <li class="nav__item"><a href="/#about" class="nav__link">אודות</a></li>
+                <li class="nav__item"><a href="/#projects" class="nav__link">פרויקטים</a></li>
+                <li class="nav__item"><a href="/#testimonials" class="nav__link">המלצות</a></li>
+                <li class="nav__item"><a href="/#contact" class="nav__link">צור קשר</a></li>
+            </ul>
+        </nav>
+
+        <!-- Mobile Menu Button -->
+        <button class="hamburger" id="hamburger" aria-label="תפריט">
+            <span class="hamburger__line"></span>
+            <span class="hamburger__line"></span>
+            <span class="hamburger__line"></span>
+        </button>
+    </header>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav-overlay" id="mobile-nav-overlay"></div>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav" id="mobile-nav">
+        <!-- Header with logo and close button -->
+        <div class="mobile-nav__header">
+            <img src="/public/images/logo/main-1764198968977.jpeg" alt="לאה בודיק" class="mobile-nav__logo" data-logo="main">
+            <button class="mobile-nav__close" id="mobile-nav-close" aria-label="סגור תפריט">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Navigation Links -->
+        <ul class="mobile-nav__list">
+            <li class="mobile-nav__item"><a href="/" class="mobile-nav__link">בית</a></li>
+            <li class="mobile-nav__item"><a href="/#about" class="mobile-nav__link">אודות</a></li>
+            <li class="mobile-nav__item"><a href="/#projects" class="mobile-nav__link">פרויקטים</a></li>
+            <li class="mobile-nav__item"><a href="/#testimonials" class="mobile-nav__link">המלצות</a></li>
+            <li class="mobile-nav__item"><a href="/#contact" class="mobile-nav__link">צור קשר</a></li>
+        </ul>
+
+        <!-- Footer with contact links -->
+        <div class="mobile-nav__footer">
+            <p class="mobile-nav__tagline">אדריכלות ועיצוב פנים</p>
+            <div class="mobile-nav__contact">
+                <a href="https://wa.me/+972533111357" target="_blank" class="mobile-nav__contact-link" aria-label="וואטסאפ">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                </a>
+                <a href="tel:0533111357" class="mobile-nav__contact-link" aria-label="טלפון">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+                    </svg>
+                </a>
+                <a href="mailto:leah0533111357@gmail.com" class="mobile-nav__contact-link" aria-label="אימייל">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="gallery-page">
+        <!-- Loading State -->
+        <div class="gallery-loading" id="gallery-loading">
+            <div class="gallery-loading__spinner"></div>
+            <p class="gallery-loading__text">טוען גלריה...</p>
+        </div>
+
+        <!-- Error State -->
+        <div class="gallery-error" id="gallery-error" style="display: none;">
+            <p class="gallery-error__text">הגלריה לא נמצאה</p>
+            <a href="/" class="btn">חזרה לדף הבית</a>
+        </div>
+
+        <!-- Gallery Header -->
+        <div class="gallery-page__header" id="gallery-header" style="display: none;">
+            <p class="gallery-page__label" id="gallery-category">גלריית עיצוב פנים</p>
+            <h1 class="gallery-page__title" id="gallery-title">טוען...</h1>
+            <p class="gallery-page__count" id="gallery-count">0 תמונות</p>
+        </div>
+
+        <!-- Gallery Grid -->
+        <div class="gallery" id="gallery" style="display: none;"></div>
+    </main>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox__close" id="lightbox-close" aria-label="סגור">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+        </button>
+        <button class="lightbox__nav lightbox__nav--prev" id="lightbox-prev" aria-label="הקודם">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+        </button>
+        <div class="lightbox__image-container">
+            <img src="" alt="תמונה מוגדלת" class="lightbox__image" id="lightbox-image">
+        </div>
+        <button class="lightbox__nav lightbox__nav--next" id="lightbox-next" aria-label="הבא">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+        </button>
+        <div class="lightbox__counter" id="lightbox-counter">1 / 1</div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="back-to-top" aria-label="חזרה למעלה">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 19V5M5 12l7-7 7 7"/>
+        </svg>
+    </button>
+
+    <style>
+        .gallery-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 50vh;
+            gap: var(--space-6);
+        }
+        .gallery-loading__spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--color-gray-800);
+            border-top-color: var(--color-accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .gallery-loading__text {
+            color: var(--color-gray-400);
+            font-size: var(--text-base);
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .gallery-error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 50vh;
+            gap: var(--space-6);
+            text-align: center;
+            padding: var(--space-6);
+        }
+        .gallery-error__text {
+            color: var(--color-gray-300);
+            font-size: var(--text-xl);
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script>
+    (function() {
+        'use strict';
+
+        // Get gallery ID from URL
+        const pathParts = window.location.pathname.split('/');
+        const galleryId = pathParts[pathParts.length - 1];
+
+        // DOM Elements
+        const elements = {
+            header: document.getElementById('header'),
+            hamburger: document.getElementById('hamburger'),
+            mobileNav: document.getElementById('mobile-nav'),
+            mobileNavOverlay: document.getElementById('mobile-nav-overlay'),
+            mobileNavClose: document.getElementById('mobile-nav-close'),
+            loading: document.getElementById('gallery-loading'),
+            error: document.getElementById('gallery-error'),
+            galleryHeader: document.getElementById('gallery-header'),
+            gallery: document.getElementById('gallery'),
+            galleryTitle: document.getElementById('gallery-title'),
+            galleryCategory: document.getElementById('gallery-category'),
+            galleryCount: document.getElementById('gallery-count'),
+            lightbox: document.getElementById('lightbox'),
+            lightboxImage: document.getElementById('lightbox-image'),
+            lightboxClose: document.getElementById('lightbox-close'),
+            lightboxPrev: document.getElementById('lightbox-prev'),
+            lightboxNext: document.getElementById('lightbox-next'),
+            lightboxCounter: document.getElementById('lightbox-counter'),
+            backToTop: document.getElementById('back-to-top')
+        };
+
+        // State
+        let state = {
+            images: [],
+            currentIndex: 0,
+            isLightboxOpen: false,
+            isMenuOpen: false,
+            touchStartX: 0,
+            touchEndX: 0
+        };
+
+        // Load gallery data
+        async function loadGallery() {
+            try {
+                const response = await fetch(`/api/galleries/${galleryId}`);
+                if (!response.ok) {
+                    throw new Error('Gallery not found');
+                }
+                const gallery = await response.json();
+                displayGallery(gallery);
+            } catch (error) {
+                console.error('Error loading gallery:', error);
+                showError();
+            }
+        }
+
+        function displayGallery(gallery) {
+            // Update page title
+            document.title = `${gallery.name} | לאה בודיק`;
+
+            // Update header
+            elements.galleryTitle.textContent = gallery.name;
+            elements.galleryCategory.textContent = gallery.category || 'גלריית עיצוב פנים';
+            elements.galleryCount.textContent = `${gallery.images?.length || 0} תמונות`;
+
+            // Helper to format image path - handles both local and Cloudinary URLs
+            function formatImagePath(path) {
+                if (!path) return '';
+                if (path.startsWith('http://') || path.startsWith('https://')) {
+                    return path;
+                }
+                return path.startsWith('/') ? path : '/' + path;
+            }
+
+            // Build gallery grid
+            if (gallery.images && gallery.images.length > 0) {
+                elements.gallery.innerHTML = gallery.images.map((img, index) => `
+                    <div class="gallery__item" data-index="${index}">
+                        <img src="${formatImagePath(img.path)}" alt="${gallery.name} ${index + 1}" class="gallery__image" loading="lazy">
+                        <div class="gallery__overlay">
+                            <div class="gallery__zoom-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"/>
+                                    <path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Store image paths for lightbox
+                state.images = gallery.images.map(img => formatImagePath(img.path));
+            } else {
+                elements.gallery.innerHTML = '<p style="text-align: center; color: var(--color-gray-400); padding: var(--space-12);">אין תמונות בגלריה זו</p>';
+            }
+
+            // Hide loading, show content
+            elements.loading.style.display = 'none';
+            elements.galleryHeader.style.display = 'block';
+            elements.gallery.style.display = 'grid';
+
+            // Initialize gallery interactions
+            initGalleryInteractions();
+        }
+
+        function showError() {
+            elements.loading.style.display = 'none';
+            elements.error.style.display = 'flex';
+        }
+
+        function initGalleryInteractions() {
+            const items = elements.gallery.querySelectorAll('.gallery__item');
+
+            items.forEach((item, index) => {
+                // Click to open lightbox
+                item.addEventListener('click', () => openLightbox(index));
+
+                // Stagger animation
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(30px)';
+                setTimeout(() => {
+                    item.style.transition = 'opacity 0.6s cubic-bezier(0.19, 1, 0.22, 1), transform 0.6s cubic-bezier(0.19, 1, 0.22, 1)';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, 100 + (index * 50));
+            });
+        }
+
+        // Header scroll effect
+        function initHeaderScroll() {
+            function updateHeader() {
+                if (window.scrollY > 50) {
+                    elements.header?.classList.add('scrolled');
+                } else {
+                    elements.header?.classList.remove('scrolled');
+                }
+            }
+            window.addEventListener('scroll', updateHeader, { passive: true });
+            updateHeader();
+        }
+
+        // Mobile navigation
+        function initMobileNav() {
+            if (!elements.hamburger || !elements.mobileNav) return;
+
+            function openMenu() {
+                state.isMenuOpen = true;
+                elements.hamburger.classList.add('active');
+                elements.mobileNav.classList.add('active');
+                elements.mobileNavOverlay?.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMenu() {
+                state.isMenuOpen = false;
+                elements.hamburger.classList.remove('active');
+                elements.mobileNav.classList.remove('active');
+                elements.mobileNavOverlay?.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            // Toggle menu on hamburger click
+            elements.hamburger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (state.isMenuOpen) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            });
+
+            // Close menu when clicking close button
+            elements.mobileNavClose?.addEventListener('click', closeMenu);
+
+            // Close menu when clicking overlay
+            elements.mobileNavOverlay?.addEventListener('click', closeMenu);
+
+            // Close menu when clicking links
+            elements.mobileNav.querySelectorAll('.mobile-nav__link').forEach(link => {
+                link.addEventListener('click', closeMenu);
+            });
+
+            // Close menu on escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && state.isMenuOpen) {
+                    closeMenu();
+                }
+            });
+        }
+
+        // Lightbox functions
+        function openLightbox(index) {
+            if (state.images.length === 0) return;
+            state.currentIndex = index;
+            state.isLightboxOpen = true;
+            updateLightboxImage();
+            elements.lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            state.isLightboxOpen = false;
+            elements.lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function updateLightboxImage() {
+            if (!elements.lightboxImage) return;
+            elements.lightboxImage.style.opacity = '0';
+            elements.lightboxImage.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                elements.lightboxImage.src = state.images[state.currentIndex];
+                elements.lightboxImage.style.opacity = '1';
+                elements.lightboxImage.style.transform = 'scale(1)';
+            }, 150);
+            if (elements.lightboxCounter) {
+                elements.lightboxCounter.textContent = `${state.currentIndex + 1} / ${state.images.length}`;
+            }
+        }
+
+        function showPreviousImage() {
+            state.currentIndex = (state.currentIndex - 1 + state.images.length) % state.images.length;
+            updateLightboxImage();
+        }
+
+        function showNextImage() {
+            state.currentIndex = (state.currentIndex + 1) % state.images.length;
+            updateLightboxImage();
+        }
+
+        function initLightbox() {
+            elements.lightboxClose?.addEventListener('click', closeLightbox);
+            elements.lightboxPrev?.addEventListener('click', (e) => { e.stopPropagation(); showPreviousImage(); });
+            elements.lightboxNext?.addEventListener('click', (e) => { e.stopPropagation(); showNextImage(); });
+            elements.lightbox?.addEventListener('click', (e) => { if (e.target === elements.lightbox) closeLightbox(); });
+
+            document.addEventListener('keydown', (e) => {
+                if (!state.isLightboxOpen) return;
+                if (e.key === 'ArrowLeft') showNextImage();
+                else if (e.key === 'ArrowRight') showPreviousImage();
+                else if (e.key === 'Escape') closeLightbox();
+            });
+
+            // Touch gestures
+            elements.lightbox?.addEventListener('touchstart', (e) => { state.touchStartX = e.touches[0].clientX; }, { passive: true });
+            elements.lightbox?.addEventListener('touchend', (e) => {
+                state.touchEndX = e.changedTouches[0].clientX;
+                const diff = state.touchStartX - state.touchEndX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) showNextImage();
+                    else showPreviousImage();
+                }
+            }, { passive: true });
+        }
+
+        // Back to top
+        function initBackToTop() {
+            if (!elements.backToTop) return;
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 500) {
+                    elements.backToTop.classList.add('visible');
+                } else {
+                    elements.backToTop.classList.remove('visible');
+                }
+            }, { passive: true });
+            elements.backToTop.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
+        // Load site content (for logo)
+        async function loadSiteContent() {
+            try {
+                const response = await fetch('/api/content');
+                if (response.ok) {
+                    const content = await response.json();
+
+                    // Helper to format path - handles both local and Cloudinary URLs
+                    const formatPath = (path) => {
+                        if (!path) return '';
+                        if (path.startsWith('http://') || path.startsWith('https://')) {
+                            return path;
+                        }
+                        return path.startsWith('/') ? path : '/' + path;
+                    };
+
+                    // Update logo
+                    if (content.logo) {
+                        if (content.logo.main) {
+                            document.querySelectorAll('[data-logo="main"]').forEach(img => {
+                                img.src = formatPath(content.logo.main);
+                            });
+                        }
+                        if (content.logo.favicon) {
+                            const favicon = document.getElementById('favicon');
+                            if (favicon) {
+                                favicon.href = formatPath(content.logo.favicon);
+                            }
+                        } else if (content.logo.main) {
+                            const favicon = document.getElementById('favicon');
+                            if (favicon) {
+                                favicon.href = formatPath(content.logo.main);
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                // Ignore errors - use default logo
+            }
+        }
+
+        // Initialize
+        function init() {
+            initHeaderScroll();
+            initMobileNav();
+            initLightbox();
+            initBackToTop();
+            loadGallery();
+            loadSiteContent();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+    </script>
+</body>
+</html>
