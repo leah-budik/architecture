@@ -1,0 +1,17 @@
+# robots.txt for https://architecture-vuqu.onrender.com/
+# Leah Budik Architecture Portfolio
+
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin panel
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://architecture-vuqu.onrender.com/sitemap.xml
+
+# Crawl-delay (optional - be nice to the server)
+Crawl-delay: 1

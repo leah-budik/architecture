@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+    <!-- Homepage -->
+    <url>
+        <loc>https://architecture-vuqu.onrender.com/</loc>
+        <lastmod>2024-11-27</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <!-- Accessibility Page -->
+    <url>
+        <loc>https://architecture-vuqu.onrender.com/accessibility.html</loc>
+        <lastmod>2024-11-27</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.3</priority>
+    </url>
+
+    <!-- Contact Page -->
+    <url>
+        <loc>https://architecture-vuqu.onrender.com/contact.html</loc>
+        <lastmod>2024-11-27</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Gallery Pages (Dynamic) -->
+    <!-- Living Rooms Gallery -->
+    <url>
+        <loc>https://architecture-vuqu.onrender.com/gallery/living-rooms</loc>
+        <lastmod>2024-11-27</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- Kitchens Gallery -->
+    <url>
+        <loc>https://architecture-vuqu.onrender.com/gallery/kitchens</loc>
+        <lastmod>2024-11-27</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- Bedrooms Gallery -->
+    <url>
+        <loc>https://architecture-vuqu.onrender.com/gallery/bedrooms</loc>
+        <lastmod>2024-11-27</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- Bathrooms Gallery -->
+    <url>
+        <loc>https://architecture-vuqu.onrender.com/gallery/bathrooms</loc>
+        <lastmod>2024-11-27</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+</urlset>
