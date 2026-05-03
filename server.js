@@ -578,16 +578,32 @@ app.get('/gallery/:id', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
+// HEALTH CHECK
+// ═══════════════════════════════════════════════════════════════════════════
+app.get('/api/health', (req, res) => {
+    const { isDBConnected } = require('./config/database');
+    res.json({
+        status: 'ok',
+        database: isDBConnected() ? 'connected' : 'disconnected'
+    });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
 // START SERVER
 // ═══════════════════════════════════════════════════════════════════════════
-async function startServer() {
-    try {
-        // Connect to MongoDB
-        await connectDB();
+function connectWithBackgroundRetry() {
+    connectDB().catch((error) => {
+        console.error('Initial MongoDB connection failed, will keep retrying in background:', error.message);
+        const retryDelayMs = 30000;
+        setTimeout(connectWithBackgroundRetry, retryDelayMs);
+    });
+}
 
-        // Start Express server
-        app.listen(PORT, () => {
-            console.log(`
+function startServer() {
+    // Start Express immediately so static pages and the health check stay
+    // available even if MongoDB is slow or temporarily unreachable.
+    app.listen(PORT, () => {
+        console.log(`
 ╔═══════════════════════════════════════════════════════════════╗
 ║                                                               ║
 ║   🏛️  LEAH BUDIK ARCHITECTURE                                 ║
@@ -601,11 +617,9 @@ async function startServer() {
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
             `);
-        });
-    } catch (error) {
-        console.error('Failed to start server:', error);
-        process.exit(1);
-    }
+    });
+
+    connectWithBackgroundRetry();
 }
 
 startServer();
