@@ -91,6 +91,7 @@
             case 'testimonials': renderTestimonials(); break;
             case 'contact': renderContact(); break;
             case 'quotes': renderQuotes(); break;
+            case 'sections': renderSections(); break;
             case 'footer': renderFooter(); break;
         }
     };
@@ -279,6 +280,8 @@
         setValue('hero-title-2', hero.title?.[1]);
         setValue('hero-title-highlight', hero.titleHighlight);
         setValue('hero-tagline', hero.tagline);
+        setValue('hero-side-text', hero.sideText);
+        setValue('hero-mega-text', hero.megaText);
         setValue('hero-description', hero.description);
         setValue('hero-cta', hero.ctaText);
 
@@ -319,6 +322,8 @@
             title: [getValue('hero-title-1'), getValue('hero-title-2')],
             titleHighlight: getValue('hero-title-highlight'),
             tagline: getValue('hero-tagline'),
+            sideText: getValue('hero-side-text'),
+            megaText: getValue('hero-mega-text'),
             description: getValue('hero-description'),
             ctaText: getValue('hero-cta'),
             images: state.content?.hero?.images || []
@@ -401,7 +406,11 @@
         const about = state.content?.about || {};
 
         setValue('about-label', about.label);
-        setValue('about-title', about.title);
+        // Title - prefer titleLines (newline-joined for textarea), fallback to title
+        const titleValue = Array.isArray(about.titleLines) && about.titleLines.length > 0
+            ? about.titleLines.join('\n')
+            : (about.title || '');
+        setValue('about-title', titleValue);
         setValue('about-lead', about.lead);
         setValue('about-text', about.text);
         setValue('about-more', about.moreText);
@@ -423,9 +432,15 @@
     window.saveAbout = async function() {
         showLoading();
 
+        // Title - parse textarea: each line becomes a title line (titleLines array)
+        // Also keep title as a backup with \n separators
+        const titleRaw = getValue('about-title') || '';
+        const titleLines = titleRaw.split('\n').map(s => s.trim()).filter(Boolean);
+
         const aboutData = {
             label: getValue('about-label'),
-            title: getValue('about-title'),
+            title: titleRaw, // legacy single-string field
+            titleLines: titleLines,
             lead: getValue('about-lead'),
             text: getValue('about-text'),
             moreText: getValue('about-more'),
@@ -1031,6 +1046,61 @@
     // ═══════════════════════════════════════════════════════════════════════════
     // RENDER: FOOTER
     // ═══════════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════
+    // RENDER: SECTION HEADERS (Projects + Testimonials titles)
+    // ═══════════════════════════════════════════════════════════════════════════
+    function renderSections() {
+        const projects = state.content?.projects || {};
+        const sections = state.content?.sections || {};
+
+        setValue('projects-label', projects.label);
+        setValue('projects-title', projects.title);
+        setValue('testimonials-label', sections.testimonialsLabel);
+        setValue('testimonials-title', sections.testimonialsTitle);
+    }
+
+    window.saveSections = async function() {
+        showLoading();
+
+        const projectsData = {
+            label: getValue('projects-label'),
+            title: getValue('projects-title'),
+            featured: state.content?.projects?.featured || []
+        };
+
+        const sectionsData = {
+            testimonialsLabel: getValue('testimonials-label'),
+            testimonialsTitle: getValue('testimonials-title')
+        };
+
+        try {
+            const [r1, r2] = await Promise.all([
+                fetch('/api/content/projects', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(projectsData)
+                }),
+                fetch('/api/content/sections', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(sectionsData)
+                })
+            ]);
+
+            if (r1.ok && r2.ok) {
+                state.content.projects = projectsData;
+                state.content.sections = sectionsData;
+                showToast('success', 'הכותרות נשמרו');
+            } else {
+                throw new Error();
+            }
+        } catch (e) {
+            showToast('error', 'שגיאה בשמירה');
+        }
+
+        hideLoading();
+    };
+
     function renderFooter() {
         const footer = state.content?.footer || {};
 

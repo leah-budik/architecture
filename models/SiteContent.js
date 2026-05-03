@@ -32,6 +32,8 @@ const HeroSchema = new mongoose.Schema({
     description: { type: String, default: '' },
     ctaText: { type: String, default: '' },
     tagline: { type: String, default: '' },
+    sideText: { type: String, default: '' },
+    megaText: { type: String, default: '' },
     images: [ImageSchema]
 }, { _id: false });
 
@@ -45,6 +47,7 @@ const StatSchema = new mongoose.Schema({
 const AboutSchema = new mongoose.Schema({
     label: { type: String, default: '' },
     title: { type: String, default: '' },
+    titleLines: [{ type: String }],
     lead: { type: String, default: '' },
     text: { type: String, default: '' },
     moreText: { type: String, default: '' },
@@ -130,6 +133,12 @@ const ProjectsSchema = new mongoose.Schema({
     featured: [{ type: String }]
 }, { _id: false });
 
+// Section headers schema (titles/labels for sections that don't have their own object)
+const SectionHeadersSchema = new mongoose.Schema({
+    testimonialsLabel: { type: String, default: '' },
+    testimonialsTitle: { type: String, default: '' }
+}, { _id: false });
+
 // Main SiteContent schema
 const SiteContentSchema = new mongoose.Schema({
     logo: { type: LogoSchema, default: () => ({}) },
@@ -142,7 +151,8 @@ const SiteContentSchema = new mongoose.Schema({
     footer: { type: FooterSchema, default: () => ({ socials: [] }) },
     seo: { type: SEOSchema, default: () => ({}) },
     marquee: { type: MarqueeSchema, default: () => ({ items: [] }) },
-    categories: [CategorySchema]
+    categories: [CategorySchema],
+    sections: { type: SectionHeadersSchema, default: () => ({}) }
 }, {
     timestamps: true,
     collection: 'sitecontent'

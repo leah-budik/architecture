@@ -58,6 +58,12 @@
 
         if (hero.subtitle) setText('heroEyebrow', hero.subtitle);
 
+        // Side text (vertical, left side)
+        if (hero.sideText) setText('heroSide', hero.sideText);
+
+        // Mega text (giant background watermark)
+        if (hero.megaText) setText('heroMega', hero.megaText);
+
         // Title can be array of lines, or single string
         if (Array.isArray(hero.title) && hero.title.length > 0) {
             const line1 = hero.title[0] || '';
@@ -140,13 +146,49 @@
 
         if (about.label) setText('aboutLabel', about.label);
 
-        if (about.title) {
-            // Split title by newlines for multi-line layout (legacy single-string approach)
-            // Try to use as raw HTML if it contains tags, otherwise as text
-            if (about.title.includes('<')) {
-                setHTML('aboutTitle', about.title);
-            } else {
-                setText('aboutTitle', about.title);
+        // Title rendering with multi-line support and last-word italic gold
+        const titleEl = document.getElementById('aboutTitle');
+        if (titleEl) {
+            // Priority order:
+            // 1. titleLines array (preferred for new design)
+            // 2. about.title with HTML tags (raw HTML)
+            // 3. about.title with newlines (split into lines)
+            // 4. about.title plain (single line, italic last word)
+            if (Array.isArray(about.titleLines) && about.titleLines.filter(Boolean).length > 0) {
+                const lines = about.titleLines.filter(Boolean);
+                titleEl.innerHTML = lines.map((line, i) => {
+                    const isLast = i === lines.length - 1;
+                    if (isLast) {
+                        // Italic gold the last word of the last line
+                        const words = line.trim().split(/\s+/);
+                        if (words.length > 1) {
+                            const last = words.pop();
+                            return `${escapeHTML(words.join(' '))} <span class="ital">${escapeHTML(last)}</span>`;
+                        }
+                        return `<span class="ital">${escapeHTML(line)}</span>`;
+                    }
+                    return escapeHTML(line);
+                }).join('<br>');
+            } else if (about.title) {
+                if (about.title.includes('<')) {
+                    titleEl.innerHTML = about.title;
+                } else if (about.title.includes('\n')) {
+                    const lines = about.title.split('\n').filter(Boolean);
+                    titleEl.innerHTML = lines.map((line, i) => {
+                        const isLast = i === lines.length - 1;
+                        if (isLast) {
+                            const words = line.trim().split(/\s+/);
+                            if (words.length > 1) {
+                                const last = words.pop();
+                                return `${escapeHTML(words.join(' '))} <span class="ital">${escapeHTML(last)}</span>`;
+                            }
+                            return `<span class="ital">${escapeHTML(line)}</span>`;
+                        }
+                        return escapeHTML(line);
+                    }).join('<br>');
+                } else {
+                    titleEl.textContent = about.title;
+                }
             }
         }
 
@@ -233,14 +275,36 @@
         const gridEl = document.getElementById('projectsGrid');
         const filtersEl = document.getElementById('projectsFilters');
         const countEl = document.getElementById('projectsCount');
+        const labelEl = document.getElementById('projectsLabel');
+        const titleEl = document.getElementById('projectsTitle');
         if (!gridEl) return;
+
+        // Editable section header
+        if (content && content.projects) {
+            if (content.projects.label) setText('projectsLabel', content.projects.label);
+            if (content.projects.title && titleEl) {
+                // Title is "פרויקטים נבחרים" - render with last word italic gold
+                const t = content.projects.title.trim();
+                const words = t.split(/\s+/);
+                if (words.length > 1) {
+                    const last = words.pop();
+                    titleEl.innerHTML = `
+                        <span class="big-num" id="projectsCount">${countEl ? countEl.textContent : '00'}</span>
+                        <span class="head-line">${escapeHTML(words.join(' '))}</span>
+                        <span class="head-line ital">${escapeHTML(last)}</span>
+                    `;
+                }
+            }
+        }
 
         const list = Array.isArray(galleries)
             ? galleries.filter(g => g.isActive !== false)
             : [];
 
-        if (countEl) {
-            countEl.textContent = String(list.length).padStart(2, '0');
+        // Re-grab countEl since titleEl rebuild may have replaced it
+        const countEl2 = document.getElementById('projectsCount');
+        if (countEl2) {
+            countEl2.textContent = String(list.length).padStart(2, '0');
         }
 
         if (list.length === 0) {
@@ -344,6 +408,26 @@
 
     function renderTestimonials(content, testimonials) {
         const gridEl = document.getElementById('testiGrid');
+        const titleEl = document.getElementById('testimonialsTitle');
+        const markEl = document.getElementById('testiMark');
+
+        // Editable section header (always render, even if no testimonials)
+        const sections = (content && content.sections) || {};
+        if (sections.testimonialsLabel && markEl) {
+            markEl.textContent = sections.testimonialsLabel;
+        }
+        if (sections.testimonialsTitle && titleEl) {
+            const t = sections.testimonialsTitle.trim();
+            // Render with last word italic gold
+            const words = t.split(/\s+/);
+            if (words.length > 1) {
+                const last = words.pop();
+                titleEl.innerHTML = `${escapeHTML(words.join(' '))} <span class="ital">${escapeHTML(last)}</span>`;
+            } else {
+                titleEl.textContent = t;
+            }
+        }
+
         if (!gridEl) return;
 
         // Get testimonials from either dedicated array or content.testimonials
@@ -351,10 +435,8 @@
         items = items.filter(t => t && t.isActive !== false && (t.text || t.shortText));
 
         if (items.length === 0) {
-            gridEl.innerHTML = '';
-            // Hide entire section if no testimonials
-            const section = gridEl.closest('section');
-            if (section) section.style.display = 'none';
+            // Show friendly placeholder instead of hiding the whole section
+            gridEl.innerHTML = '<div class="empty-state" style="grid-column: 1/-1">בקרוב המלצות לקוחות</div>';
             return;
         }
 

@@ -79,6 +79,12 @@
                 </svg>
                 <span>ציטוטים</span>
             </a>
+            <a href="#sections" class="sidebar__link" data-section="sections">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                <span>כותרות סקציות</span>
+            </a>
             <a href="#footer" class="sidebar__link" data-section="footer">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M4 19h16M4 15h16M4 11h16"/>
@@ -339,8 +345,19 @@
                         <label class="form-label">טקסט תחתון (Tagline)</label>
                         <textarea class="form-textarea" id="hero-tagline" rows="2" placeholder="תכנון בתי מגורים יוקרתיים — חללים שמרגישים נכון, לא מרשימים."></textarea>
                     </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">טקסט הצד (אנכי בצד שמאל)</label>
+                            <input type="text" class="form-input" id="hero-side-text" placeholder="EST. 2009 — TEL AVIV / ISRAEL">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">טקסט ענק ברקע (ראשי תיבות)</label>
+                            <input type="text" class="form-input" id="hero-mega-text" placeholder="LB" maxlength="6">
+                            <small style="color: #888; display: block; margin-top: 4px;">2-4 אותיות בלבד</small>
+                        </div>
+                    </div>
                     <div class="form-group">
-                        <label class="form-label">תיאור (לא בשימוש בעיצוב החדש - גיבוי)</label>
+                        <label class="form-label">תיאור (גיבוי - לא בשימוש בעיצוב החדש)</label>
                         <textarea class="form-textarea" id="hero-description" rows="2"></textarea>
                     </div>
                     <div class="form-group">
@@ -387,11 +404,12 @@
                         <input type="text" class="form-input" id="about-label" placeholder="אודות הסטודיו">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">כותרת ראשית</label>
-                        <input type="text" class="form-input" id="about-title" placeholder="מעצבים את החלום שלך למציאות">
+                        <label class="form-label">כותרת ראשית (כל שורה בשורה נפרדת)</label>
+                        <textarea class="form-textarea" id="about-title" rows="3" placeholder="של פרטים&#10;שלא רואים&#10;במבט ראשון."></textarea>
+                        <small style="color: #888; display: block; margin-top: 4px;">המילה האחרונה בשורה האחרונה תהיה באיטליקה זהב אוטומטית</small>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">משפט פתיחה</label>
+                        <label class="form-label">משפט פתיחה (גיבוי)</label>
                         <input type="text" class="form-input" id="about-lead" placeholder="שמי לאה בודיק...">
                     </div>
                     <div class="form-group">
@@ -619,6 +637,49 @@
                     </div>
 
                     <button class="btn btn--primary" onclick="saveContact()">שמור שינויים</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Headers -->
+        <section class="content-section" id="section-sections">
+            <div class="section-header">
+                <h1 class="section-title">כותרות סקציות</h1>
+                <p class="section-subtitle">עריכת הכותרות והתוויות של הסקציות באתר</p>
+            </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h2 class="card__title">סקציית פרויקטים</h2>
+                </div>
+                <div class="card__body">
+                    <div class="form-group">
+                        <label class="form-label">תווית קטנה (eyebrow מעל הכותרת)</label>
+                        <input type="text" class="form-input" id="projects-label" placeholder="Selected Works · 2018—2026">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">כותרת הסקציה</label>
+                        <input type="text" class="form-input" id="projects-title" placeholder="פרויקטים נבחרים">
+                        <small style="color: #888; display: block; margin-top: 4px;">המילה האחרונה תהיה באיטליקה זהב אוטומטית</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h2 class="card__title">סקציית המלצות</h2>
+                </div>
+                <div class="card__body">
+                    <div class="form-group">
+                        <label class="form-label">תווית קטנה (mark מעל הכותרת)</label>
+                        <input type="text" class="form-input" id="testimonials-label" placeholder="— VOICES">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">כותרת הסקציה</label>
+                        <input type="text" class="form-input" id="testimonials-title" placeholder="אנשים שגרים בבתים שתכננה">
+                        <small style="color: #888; display: block; margin-top: 4px;">המילה האחרונה תהיה באיטליקה זהב אוטומטית</small>
+                    </div>
+                    <button class="btn btn--primary" onclick="saveSections()">שמור כותרות</button>
                 </div>
             </div>
         </section>
