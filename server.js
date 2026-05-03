@@ -6,6 +6,8 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 
 // Database and Storage
@@ -21,22 +23,65 @@ const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1);
 
 // ═══════════════════════════════════════════════════════════════════════════
+// SECURITY (helmet) — must be applied early, before routes
+// ═══════════════════════════════════════════════════════════════════════════
+app.use(helmet({
+    // Custom CSP that allows our actual dependencies (Cloudinary, Google Fonts,
+    // inline SVG favicons). Without this, helmet's default CSP would block them.
+    contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+            defaultSrc: ["'self'"],
+            // Inline styles are used in some HTML (e.g. gallery.html <style>).
+            // Allowing 'unsafe-inline' here is acceptable for a single-author CMS.
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://api.fontshare.com", "data:"],
+            // Inline scripts in HTML (small init scripts). Same-origin /public/js/*.js is the main bundle.
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com", "https://*.cloudinary.com"],
+            connectSrc: ["'self'"],
+            frameAncestors: ["'none'"], // can't be embedded in <iframe> elsewhere
+            objectSrc: ["'none'"],
+            upgradeInsecureRequests: []
+        }
+    },
+    // X-Frame-Options redundant with frameAncestors above; helmet sets DENY by default.
+    crossOriginEmbedderPolicy: false, // Cloudinary images don't send COEP headers
+    crossOriginResourcePolicy: { policy: 'cross-origin' } // allow Cloudinary loads
+}));
+
+// ═══════════════════════════════════════════════════════════════════════════
 // MIDDLEWARE
 // ═══════════════════════════════════════════════════════════════════════════
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('.'));
 
-// Session configuration
+// Session configuration. SESSION_SECRET MUST be set via env — the server
+// refuses to start without it (see startServer). No fallback default.
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'default-secret-change-me',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    name: 'lb.sid',
     cookie: {
+        httpOnly: true,
+        sameSite: 'lax',
         secure: process.env.NODE_ENV === 'production',
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
 }));
+
+// Rate limiter for login — prevents brute-force password guessing.
+// 5 attempts per 15 minutes per IP, then locked out for the rest of the window.
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'יותר מדי ניסיונות התחברות. נסי שוב בעוד 15 דקות.' },
+    skipSuccessfulRequests: true // don't count valid logins against the limit
+});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // AUTHENTICATION MIDDLEWARE
@@ -61,16 +106,30 @@ app.get('/admin/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin', 'login.html'));
 });
 
-app.post('/api/auth/login', (req, res) => {
-    const { username, password } = req.body;
+app.post('/api/auth/login', loginLimiter, (req, res) => {
+    const { username, password } = req.body || {};
 
-    const adminUsername = process.env.ADMIN_USERNAME || 'admin';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const adminUsername = process.env.ADMIN_USERNAME;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    // If env vars aren't configured, refuse to authenticate at all rather than
+    // falling back to a known default (which would be a backdoor).
+    if (!adminUsername || !adminPassword) {
+        console.error('LOGIN BLOCKED: ADMIN_USERNAME or ADMIN_PASSWORD missing in env');
+        return res.status(500).json({ error: 'שגיאת תצורה בשרת. צרי קשר עם המנהל.' });
+    }
 
     if (username === adminUsername && password === adminPassword) {
-        req.session.isAuthenticated = true;
-        req.session.username = username;
-        res.json({ success: true });
+        // Regenerate session ID after login to prevent session fixation
+        req.session.regenerate((err) => {
+            if (err) {
+                console.error('Session regenerate failed:', err);
+                return res.status(500).json({ error: 'שגיאת התחברות' });
+            }
+            req.session.isAuthenticated = true;
+            req.session.username = username;
+            req.session.save(() => res.json({ success: true }));
+        });
     } else {
         res.status(401).json({ error: 'שם משתמש או סיסמה שגויים' });
     }
@@ -675,6 +734,18 @@ function connectWithBackgroundRetry() {
 }
 
 function startServer() {
+    // Refuse to start with an insecure or missing SESSION_SECRET — a known/empty
+    // secret would let anyone forge an admin session.
+    const secret = process.env.SESSION_SECRET;
+    if (!secret || secret.length < 16 || secret === 'default-secret-change-me') {
+        console.error('FATAL: SESSION_SECRET is missing or too short (need 16+ chars).');
+        console.error('Set SESSION_SECRET in your environment before starting the server.');
+        process.exit(1);
+    }
+    if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD) {
+        console.warn('WARNING: ADMIN_USERNAME / ADMIN_PASSWORD not set — admin login is disabled.');
+    }
+
     // Start Express immediately so static pages and the health check stay
     // available even if MongoDB is slow or temporarily unreachable.
     app.listen(PORT, () => {
