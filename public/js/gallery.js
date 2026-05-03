@@ -1,383 +1,310 @@
 /**
- * LEAH BUDIK ARCHITECTURE
- * Premium JavaScript - Gallery & Lightbox
- * Luxury gallery experience with smooth animations
+ * LEAH BUDIK ARCHITECTURE - Gallery Page (Redesigned)
+ * Loads single gallery + builds image grid + lightbox
  */
 
-(function() {
+(function () {
     'use strict';
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // DOM ELEMENTS
-    // ═══════════════════════════════════════════════════════════════════════════
-    const elements = {
-        header: document.getElementById('header'),
-        hamburger: document.getElementById('hamburger'),
-        mobileNav: document.getElementById('mobile-nav'),
-        mobileNavOverlay: document.getElementById('mobile-nav-overlay'),
-        mobileNavClose: document.getElementById('mobile-nav-close'),
-        gallery: document.getElementById('gallery'),
-        lightbox: document.getElementById('lightbox'),
-        lightboxImage: document.getElementById('lightbox-image'),
-        lightboxClose: document.getElementById('lightbox-close'),
-        lightboxPrev: document.getElementById('lightbox-prev'),
-        lightboxNext: document.getElementById('lightbox-next'),
-        lightboxCounter: document.getElementById('lightbox-counter'),
-        backToTop: document.getElementById('back-to-top')
-    };
+    const $ = (sel) => document.querySelector(sel);
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // STATE
-    // ═══════════════════════════════════════════════════════════════════════════
-    let state = {
-        images: [],
-        currentIndex: 0,
-        isLightboxOpen: false,
-        isMenuOpen: false,
-        touchStartX: 0,
-        touchEndX: 0,
-        lastFocusedElement: null
-    };
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // HEADER SCROLL EFFECT
-    // ═══════════════════════════════════════════════════════════════════════════
-    function initHeaderScroll() {
-        function updateHeader() {
-            if (window.scrollY > 50) {
-                elements.header?.classList.add('scrolled');
-            } else {
-                elements.header?.classList.remove('scrolled');
-            }
-        }
-
-        window.addEventListener('scroll', throttle(updateHeader, 100), { passive: true });
-        updateHeader();
+    function escapeHTML(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // MOBILE NAVIGATION
-    // ═══════════════════════════════════════════════════════════════════════════
-    function initMobileNav() {
-        if (!elements.hamburger || !elements.mobileNav) return;
+    function getGalleryIdFromURL() {
+        const pathMatch = window.location.pathname.match(/\/gallery\/([^/?#]+)/);
+        if (pathMatch) return decodeURIComponent(pathMatch[1]);
+        const params = new URLSearchParams(window.location.search);
+        return params.get('id');
+    }
 
-        // Toggle menu on hamburger click
-        elements.hamburger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleMenu();
+    async function fetchJSON(url) {
+        try {
+            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) return null;
+            return await res.json();
+        } catch (err) {
+            console.warn('Fetch failed:', url, err);
+            return null;
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Nav (matches main site)
+    // ─────────────────────────────────────────────────────────────────────
+    function initNav() {
+        const nav = $('#nav');
+        if (!nav) return;
+        const onScroll = () => {
+            if (window.scrollY > 24) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+    }
+
+    function initMobileDrawer() {
+        const burger = $('#navBurger');
+        const drawer = $('#mobileDrawer');
+        if (!burger || !drawer) return;
+        const close = () => {
+            drawer.classList.remove('open');
+            burger.classList.remove('open');
+            burger.setAttribute('aria-expanded', 'false');
+            drawer.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('no-scroll');
+        };
+        const open = () => {
+            drawer.classList.add('open');
+            burger.classList.add('open');
+            burger.setAttribute('aria-expanded', 'true');
+            drawer.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('no-scroll');
+        };
+        burger.addEventListener('click', () => {
+            if (drawer.classList.contains('open')) close();
+            else open();
         });
-
-        // Close menu when clicking close button
-        elements.mobileNavClose?.addEventListener('click', closeMenu);
-
-        // Close menu when clicking overlay
-        elements.mobileNavOverlay?.addEventListener('click', closeMenu);
-
-        // Close menu when clicking links
-        const mobileLinks = elements.mobileNav.querySelectorAll('.mobile-nav__link');
-        mobileLinks.forEach(link => {
-            link.addEventListener('click', closeMenu);
+        drawer.addEventListener('click', (e) => {
+            if (e.target.closest('[data-drawer-close]')) close();
         });
-
-        // Close menu on escape
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && state.isMenuOpen) {
-                closeMenu();
-            }
+            if (e.key === 'Escape' && drawer.classList.contains('open')) close();
+        });
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 900 && drawer.classList.contains('open')) close();
         });
     }
 
-    function toggleMenu() {
-        state.isMenuOpen = !state.isMenuOpen;
-        elements.hamburger.classList.toggle('active', state.isMenuOpen);
-        elements.mobileNav.classList.toggle('active', state.isMenuOpen);
-        elements.mobileNavOverlay?.classList.toggle('active', state.isMenuOpen);
-        document.body.style.overflow = state.isMenuOpen ? 'hidden' : '';
+    // ─────────────────────────────────────────────────────────────────────
+    // Lightbox
+    // ─────────────────────────────────────────────────────────────────────
+    let lightboxState = { images: [], index: 0, open: false };
 
-        // Update ARIA attributes for accessibility
-        elements.hamburger.setAttribute('aria-expanded', state.isMenuOpen);
-        elements.hamburger.setAttribute('aria-label', state.isMenuOpen ? 'סגור תפריט ניווט' : 'פתח תפריט ניווט');
-        elements.mobileNav?.setAttribute('aria-hidden', !state.isMenuOpen);
-        elements.mobileNavOverlay?.setAttribute('aria-hidden', !state.isMenuOpen);
-
-        // Focus management
-        if (state.isMenuOpen) {
-            elements.mobileNavClose?.focus();
-        }
-    }
-
-    function closeMenu() {
-        state.isMenuOpen = false;
-        elements.hamburger?.classList.remove('active');
-        elements.mobileNav?.classList.remove('active');
-        elements.mobileNavOverlay?.classList.remove('active');
-        document.body.style.overflow = state.isLightboxOpen ? 'hidden' : '';
-
-        // Update ARIA attributes for accessibility
-        elements.hamburger?.setAttribute('aria-expanded', 'false');
-        elements.hamburger?.setAttribute('aria-label', 'פתח תפריט ניווט');
-        elements.mobileNav?.setAttribute('aria-hidden', 'true');
-        elements.mobileNavOverlay?.setAttribute('aria-hidden', 'true');
-
-        // Return focus to hamburger button
-        elements.hamburger?.focus();
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // GALLERY INITIALIZATION
-    // ═══════════════════════════════════════════════════════════════════════════
-    function initGallery() {
-        if (!elements.gallery) return;
-
-        // Get all gallery images
-        const galleryItems = elements.gallery.querySelectorAll('.gallery__item');
-
-        galleryItems.forEach((item, index) => {
-            const img = item.querySelector('.gallery__image');
-            if (img) {
-                state.images.push(img.src);
-
-                // Make gallery items keyboard accessible
-                item.setAttribute('role', 'button');
-                item.setAttribute('tabindex', '0');
-                item.setAttribute('aria-label', `פתח תמונה ${index + 1} מתוך ${galleryItems.length}`);
-
-                item.addEventListener('click', () => {
-                    state.lastFocusedElement = item; // Store for focus return
-                    openLightbox(index);
-                });
-
-                // Keyboard support for gallery items
-                item.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        state.lastFocusedElement = item;
-                        openLightbox(index);
-                    }
-                });
-            }
-        });
-
-        // Stagger animation on load
-        galleryItems.forEach((item, index) => {
-            item.style.opacity = '0';
-            item.style.transform = 'translateY(30px)';
-
-            setTimeout(() => {
-                item.style.transition = 'opacity 0.6s cubic-bezier(0.19, 1, 0.22, 1), transform 0.6s cubic-bezier(0.19, 1, 0.22, 1)';
-                item.style.opacity = '1';
-                item.style.transform = 'translateY(0)';
-            }, 100 + (index * 50));
-        });
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // LIGHTBOX FUNCTIONALITY
-    // ═══════════════════════════════════════════════════════════════════════════
-    function initLightbox() {
-        if (!elements.lightbox) return;
-
-        // Close button
-        elements.lightboxClose?.addEventListener('click', closeLightbox);
-
-        // Navigation buttons
-        elements.lightboxPrev?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            showPreviousImage();
-        });
-
-        elements.lightboxNext?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            showNextImage();
-        });
-
-        // Click outside to close
-        elements.lightbox.addEventListener('click', (e) => {
-            if (e.target === elements.lightbox) {
-                closeLightbox();
-            }
-        });
-
-        // Keyboard navigation
-        document.addEventListener('keydown', handleKeydown);
-
-        // Mouse wheel navigation
-        elements.lightbox.addEventListener('wheel', handleWheel, { passive: false });
-
-        // Touch gestures
-        elements.lightbox.addEventListener('touchstart', handleTouchStart, { passive: true });
-        elements.lightbox.addEventListener('touchend', handleTouchEnd, { passive: true });
-    }
-
-    function openLightbox(index) {
-        state.currentIndex = index;
-        state.isLightboxOpen = true;
-
-        updateLightboxImage();
-
-        elements.lightbox.classList.add('active');
-        elements.lightbox.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
-
-        // Focus trap: focus the close button when lightbox opens
-        setTimeout(() => {
-            elements.lightboxClose?.focus();
-        }, 100);
+    function openLightbox(images, index) {
+        lightboxState.images = images;
+        lightboxState.index = index;
+        lightboxState.open = true;
+        const lb = $('#lightbox');
+        if (!lb) return;
+        lb.classList.add('open');
+        lb.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('no-scroll');
+        renderLightboxImage();
     }
 
     function closeLightbox() {
-        state.isLightboxOpen = false;
-        elements.lightbox.classList.remove('active');
-        elements.lightbox.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
+        lightboxState.open = false;
+        const lb = $('#lightbox');
+        if (!lb) return;
+        lb.classList.remove('open');
+        lb.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('no-scroll');
+    }
 
-        // Return focus to the element that opened the lightbox
-        if (state.lastFocusedElement) {
-            state.lastFocusedElement.focus();
+    function nextLightbox() {
+        if (!lightboxState.images.length) return;
+        lightboxState.index = (lightboxState.index + 1) % lightboxState.images.length;
+        renderLightboxImage();
+    }
+
+    function prevLightbox() {
+        if (!lightboxState.images.length) return;
+        lightboxState.index = (lightboxState.index - 1 + lightboxState.images.length) % lightboxState.images.length;
+        renderLightboxImage();
+    }
+
+    function renderLightboxImage() {
+        const img = $('#lightbox-image');
+        const counter = $('#lightbox-counter');
+        const current = lightboxState.images[lightboxState.index];
+        if (img && current) {
+            img.src = current.path;
+            img.alt = current.originalName || '';
+        }
+        if (counter) {
+            counter.textContent = `${lightboxState.index + 1} / ${lightboxState.images.length}`;
         }
     }
 
-    function updateLightboxImage() {
-        if (!elements.lightboxImage) return;
-
-        // Fade out
-        elements.lightboxImage.style.opacity = '0';
-        elements.lightboxImage.style.transform = 'scale(0.95)';
-
-        setTimeout(() => {
-            elements.lightboxImage.src = state.images[state.currentIndex];
-
-            // Fade in
-            elements.lightboxImage.style.opacity = '1';
-            elements.lightboxImage.style.transform = 'scale(1)';
-        }, 150);
-
-        // Update counter
-        if (elements.lightboxCounter) {
-            elements.lightboxCounter.textContent = `${state.currentIndex + 1} / ${state.images.length}`;
-        }
+    function initLightbox() {
+        $('#lightbox-close')?.addEventListener('click', closeLightbox);
+        $('#lightbox-prev')?.addEventListener('click', prevLightbox);
+        $('#lightbox-next')?.addEventListener('click', nextLightbox);
+        $('#lightbox')?.addEventListener('click', (e) => {
+            if (e.target.id === 'lightbox') closeLightbox();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (!lightboxState.open) return;
+            if (e.key === 'Escape') closeLightbox();
+            else if (e.key === 'ArrowLeft') nextLightbox();
+            else if (e.key === 'ArrowRight') prevLightbox();
+        });
     }
 
-    function showPreviousImage() {
-        state.currentIndex = (state.currentIndex - 1 + state.images.length) % state.images.length;
-        updateLightboxImage();
-    }
-
-    function showNextImage() {
-        state.currentIndex = (state.currentIndex + 1) % state.images.length;
-        updateLightboxImage();
-    }
-
-    function handleKeydown(e) {
-        if (!state.isLightboxOpen) return;
-
-        switch(e.key) {
-            case 'ArrowLeft':
-                showNextImage(); // RTL - left goes next
-                break;
-            case 'ArrowRight':
-                showPreviousImage(); // RTL - right goes previous
-                break;
-            case 'Escape':
-                closeLightbox();
-                break;
-        }
-    }
-
-    function handleWheel(e) {
-        if (!state.isLightboxOpen) return;
-
-        e.preventDefault();
-
-        if (e.deltaY > 0) {
-            showNextImage();
-        } else {
-            showPreviousImage();
-        }
-    }
-
-    function handleTouchStart(e) {
-        state.touchStartX = e.touches[0].clientX;
-    }
-
-    function handleTouchEnd(e) {
-        state.touchEndX = e.changedTouches[0].clientX;
-        const diff = state.touchStartX - state.touchEndX;
-
-        if (Math.abs(diff) > 50) {
-            if (diff > 0) {
-                showNextImage(); // Swipe left - next
-            } else {
-                showPreviousImage(); // Swipe right - previous
-            }
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // BACK TO TOP BUTTON
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ─────────────────────────────────────────────────────────────────────
+    // Back to top
+    // ─────────────────────────────────────────────────────────────────────
     function initBackToTop() {
-        if (!elements.backToTop) return;
+        const btn = $('#back-to-top');
+        if (!btn) return;
+        const onScroll = () => {
+            if (window.scrollY > 500) btn.classList.add('visible');
+            else btn.classList.remove('visible');
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        onScroll();
+    }
 
-        function updateVisibility() {
-            if (window.scrollY > 500) {
-                elements.backToTop.classList.add('visible');
-            } else {
-                elements.backToTop.classList.remove('visible');
+    // ─────────────────────────────────────────────────────────────────────
+    // Footer + logo (mirror main site)
+    // ─────────────────────────────────────────────────────────────────────
+    async function loadSiteContent() {
+        const content = await fetchJSON('/api/content');
+        if (!content) return;
+
+        const footer = content.footer || {};
+        if (footer.copyright) {
+            const el = $('#footerCopyright');
+            if (el) el.textContent = footer.copyright;
+        }
+
+        const credits = $('#footerCredits');
+        if (credits) {
+            const socials = Array.isArray(footer.socials) ? footer.socials.filter(s => s && s.url && s.name) : [];
+            if (socials.length > 0) {
+                credits.innerHTML = socials.map(s =>
+                    `<a href="${escapeHTML(s.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(s.name)}</a>`
+                ).join('');
             }
         }
 
-        window.addEventListener('scroll', throttle(updateVisibility, 100), { passive: true });
-
-        elements.backToTop.addEventListener('click', () => {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        });
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // UTILITY FUNCTIONS
-    // ═══════════════════════════════════════════════════════════════════════════
-    function throttle(func, limit) {
-        let inThrottle;
-        return function(...args) {
-            if (!inThrottle) {
-                func.apply(this, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
+        if (content.logo && content.logo.main) {
+            const brandText = $('#navBrandText');
+            if (brandText) {
+                brandText.outerHTML = `<img src="${escapeHTML(content.logo.main)}" alt="לאה בודיק" />`;
             }
-        };
+        }
+        if (content.logo && content.logo.favicon) {
+            const fav = $('#favicon');
+            if (fav) fav.href = content.logo.favicon;
+        }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // PRELOAD IMAGES
-    // ═══════════════════════════════════════════════════════════════════════════
-    function preloadImages() {
-        state.images.forEach(src => {
-            const img = new Image();
-            img.src = src;
+    // ─────────────────────────────────────────────────────────────────────
+    // Gallery render
+    // ─────────────────────────────────────────────────────────────────────
+    function renderError() {
+        const loading = $('#gallery-loading');
+        const error = $('#gallery-error');
+        if (loading) loading.style.display = 'none';
+        if (error) error.style.display = 'flex';
+    }
+
+    function renderGallery(gallery) {
+        const loading = $('#gallery-loading');
+        if (loading) loading.style.display = 'none';
+
+        const heroEl = $('#gallery-hero');
+        const gridEl = $('#gallery-grid');
+        if (heroEl) heroEl.style.display = 'block';
+        if (gridEl) gridEl.style.display = 'grid';
+
+        // Title - last word in italic gold
+        const titleEl = $('#gallery-title');
+        if (titleEl && gallery.name) {
+            const words = gallery.name.trim().split(/\s+/);
+            if (words.length > 1) {
+                const last = words.pop();
+                titleEl.innerHTML = `${escapeHTML(words.join(' '))} <span class="ital">${escapeHTML(last)}</span>`;
+            } else {
+                titleEl.textContent = gallery.name;
+            }
+        }
+
+        document.title = `${gallery.name || 'גלריה'} | לאה בודיק`;
+
+        const catEl = $('#gallery-category');
+        if (catEl && gallery.category) catEl.textContent = gallery.category;
+
+        const descEl = $('#gallery-description');
+        if (descEl && gallery.description) {
+            descEl.textContent = gallery.description;
+            descEl.style.display = 'block';
+        }
+
+        const countEl = $('#gallery-count');
+        const images = gallery.images || [];
+        if (countEl) countEl.textContent = `${images.length} תמונות`;
+
+        if (!gridEl) return;
+        if (images.length === 0) {
+            gridEl.innerHTML = '<div class="empty-state" style="grid-column: 1/-1">אין תמונות בגלריה זו</div>';
+            return;
+        }
+
+        gridEl.innerHTML = images.map((img, i) => `
+            <figure class="gallery-item" data-index="${i}">
+                <img src="${escapeHTML(img.path)}" alt="${escapeHTML(img.originalName || gallery.name || '')}" loading="lazy" decoding="async">
+                <div class="gallery-item__overlay" aria-hidden="true">
+                    <span class="gallery-item__num">${String(i + 1).padStart(2, '0')} / ${String(images.length).padStart(2, '0')}</span>
+                </div>
+            </figure>
+        `).join('');
+
+        gridEl.querySelectorAll('img').forEach(img => {
+            const finish = () => img.classList.add('loaded');
+            if (img.complete && img.naturalWidth > 0) finish();
+            else {
+                img.addEventListener('load', finish, { once: true });
+                img.addEventListener('error', () => img.parentElement?.remove(), { once: true });
+            }
+        });
+
+        gridEl.addEventListener('click', (e) => {
+            const item = e.target.closest('.gallery-item');
+            if (!item) return;
+            const idx = parseInt(item.dataset.index, 10);
+            openLightbox(images, idx);
         });
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // INITIALIZE
-    // ═══════════════════════════════════════════════════════════════════════════
-    function init() {
-        document.addEventListener('DOMContentLoaded', () => {
-            initHeaderScroll();
-            initMobileNav();
-            initGallery();
-            initLightbox();
-            initBackToTop();
+    // ─────────────────────────────────────────────────────────────────────
+    // Boot
+    // ─────────────────────────────────────────────────────────────────────
+    async function boot() {
+        initNav();
+        initMobileDrawer();
+        initLightbox();
+        initBackToTop();
 
-            // Preload images after initial load
-            setTimeout(preloadImages, 1000);
-        });
+        loadSiteContent();
+
+        const id = getGalleryIdFromURL();
+        if (!id) {
+            renderError();
+            return;
+        }
+
+        const gallery = await fetchJSON(`/api/galleries/${encodeURIComponent(id)}`);
+        if (!gallery || gallery.error) {
+            renderError();
+            return;
+        }
+        renderGallery(gallery);
     }
 
-    // Start the application
-    init();
-
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot);
+    } else {
+        boot();
+    }
 })();
