@@ -460,6 +460,25 @@
                     <button class="btn btn--primary" onclick="saveAbout()">שמור שינויים</button>
                 </div>
             </div>
+
+            <div class="card">
+                <div class="card__header">
+                    <h2 class="card__title">תמונת פורטרט</h2>
+                    <button class="btn btn--small" onclick="document.getElementById('about-image-upload').click()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                        </svg>
+                        העלה תמונה
+                    </button>
+                    <input type="file" id="about-image-upload" accept="image/*" style="display:none" onchange="uploadAboutImage(this)">
+                </div>
+                <div class="card__body">
+                    <p style="color: #888; font-size: 13px; margin-bottom: 16px;">תמונה אישית שמופיעה בסקציית "אודות". יחס מומלץ: 4:5 (פורטרט). למשל: דיוקן או תמונה מקצועית.</p>
+                    <div id="about-image-preview" style="max-width: 320px;">
+                        <!-- Preview shown by JS -->
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- Galleries Section -->

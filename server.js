@@ -578,6 +578,61 @@ app.get('/gallery/:id', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
+// ABOUT IMAGE API ROUTES (Cloudinary)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Upload about image (portrait)
+app.post('/api/about-image', requireAuth, (req, res) => {
+    uploaders.about.single('image')(req, res, async (err) => {
+        if (err) {
+            console.error('About upload error:', err);
+            return res.status(400).json({ error: err.message });
+        }
+
+        try {
+            const content = await SiteContent.getContent();
+            if (!content.about) content.about = {};
+
+            // Delete old about image from Cloudinary if exists
+            if (content.about.imagePublicId) {
+                await deleteImage(content.about.imagePublicId);
+            }
+
+            content.about.image = req.file.path;          // Cloudinary URL
+            content.about.imagePublicId = req.file.filename; // Cloudinary public_id
+
+            await content.save();
+            res.json({ success: true, path: req.file.path });
+        } catch (error) {
+            console.error('Error saving about image:', error);
+            res.status(500).json({ error: 'Failed to save about image' });
+        }
+    });
+});
+
+// Delete about image
+app.delete('/api/about-image', requireAuth, async (req, res) => {
+    try {
+        const content = await SiteContent.getContent();
+        if (!content.about || !content.about.image) {
+            return res.status(404).json({ error: 'About image not found' });
+        }
+
+        if (content.about.imagePublicId) {
+            await deleteImage(content.about.imagePublicId);
+        }
+
+        content.about.image = '';
+        content.about.imagePublicId = undefined;
+        await content.save();
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting about image:', error);
+        res.status(500).json({ error: 'Failed to delete about image' });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
 // HEALTH CHECK
 // ═══════════════════════════════════════════════════════════════════════════
 app.get('/api/health', (req, res) => {

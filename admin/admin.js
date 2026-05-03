@@ -406,7 +406,6 @@
         const about = state.content?.about || {};
 
         setValue('about-label', about.label);
-        // Title - prefer titleLines (newline-joined for textarea), fallback to title
         const titleValue = Array.isArray(about.titleLines) && about.titleLines.length > 0
             ? about.titleLines.join('\n')
             : (about.title || '');
@@ -416,6 +415,8 @@
         setValue('about-more', about.moreText);
         setValue('about-signature', about.signature);
         setValue('about-signature-role', about.signatureRole);
+
+        renderAboutImage();
 
         if (about.stats) {
             setValue('about-stat-1-num', about.stats[0]?.number);
@@ -472,6 +473,73 @@
             showToast('error', 'שגיאה בשמירה');
         }
 
+        hideLoading();
+    };
+
+    // ─── About image (portrait) ─────────────────────────────────────────────
+    function renderAboutImage() {
+        const container = document.getElementById('about-image-preview');
+        if (!container) return;
+        const img = state.content?.about?.image;
+        if (img) {
+            container.innerHTML = `
+                <div class="image-item" style="position: relative; aspect-ratio: 4/5;">
+                    <img src="${formatPath(img)}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                    <div class="image-item__overlay">
+                        <button class="btn--icon danger" onclick="deleteAboutImage()" title="מחק תמונה">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = '<div class="empty-state"><p>אין תמונת פורטרט. לחץ "העלה תמונה" כדי להוסיף.</p></div>';
+        }
+    }
+
+    window.uploadAboutImage = async function(input) {
+        if (!input.files.length) return;
+
+        showLoading();
+        const formData = new FormData();
+        formData.append('image', input.files[0]);
+
+        try {
+            const res = await fetch('/api/about-image', { method: 'POST', body: formData });
+            if (res.ok) {
+                const data = await res.json();
+                state.content.about = state.content.about || {};
+                state.content.about.image = data.path;
+                renderAboutImage();
+                showToast('success', 'התמונה הועלתה בהצלחה');
+            } else {
+                throw new Error();
+            }
+        } catch (e) {
+            showToast('error', 'שגיאה בהעלאת התמונה');
+        }
+
+        hideLoading();
+        input.value = '';
+    };
+
+    window.deleteAboutImage = async function() {
+        if (!confirm('למחוק את תמונת הפורטרט?')) return;
+
+        showLoading();
+        try {
+            const res = await fetch('/api/about-image', { method: 'DELETE' });
+            if (res.ok) {
+                if (state.content.about) state.content.about.image = '';
+                renderAboutImage();
+                showToast('success', 'התמונה נמחקה');
+            }
+        } catch (e) {
+            showToast('error', 'שגיאה במחיקה');
+        }
         hideLoading();
     };
 
