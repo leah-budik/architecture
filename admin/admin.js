@@ -502,24 +502,35 @@
 
     window.uploadAboutImage = async function(input) {
         if (!input.files.length) return;
+        const file = input.files[0];
+
+        // Client-side check for file size
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            showToast('error', `הקובץ גדול מדי (${(file.size / 1024 / 1024).toFixed(1)}MB). מקסימום 10MB.`);
+            input.value = '';
+            return;
+        }
 
         showLoading();
         const formData = new FormData();
-        formData.append('image', input.files[0]);
+        formData.append('image', file);
 
         try {
             const res = await fetch('/api/about-image', { method: 'POST', body: formData });
+            const data = await res.json().catch(() => ({}));
             if (res.ok) {
-                const data = await res.json();
                 state.content.about = state.content.about || {};
                 state.content.about.image = data.path;
                 renderAboutImage();
                 showToast('success', 'התמונה הועלתה בהצלחה');
             } else {
-                throw new Error();
+                showToast('error', data.error || `שגיאה ${res.status}`);
+                console.error('Upload failed:', data);
             }
         } catch (e) {
-            showToast('error', 'שגיאה בהעלאת התמונה');
+            console.error('Upload exception:', e);
+            showToast('error', 'שגיאת רשת בהעלאה');
         }
 
         hideLoading();

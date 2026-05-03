@@ -585,8 +585,16 @@ app.get('/gallery/:id', (req, res) => {
 app.post('/api/about-image', requireAuth, (req, res) => {
     uploaders.about.single('image')(req, res, async (err) => {
         if (err) {
-            console.error('About upload error:', err);
-            return res.status(400).json({ error: err.message });
+            console.error('About upload error:', err.message, err.stack);
+            return res.status(400).json({
+                error: err.message || 'Upload failed',
+                details: err.code || err.name || 'unknown'
+            });
+        }
+
+        if (!req.file) {
+            console.error('About upload: no file received');
+            return res.status(400).json({ error: 'לא התקבל קובץ. ייתכן שהקובץ גדול מדי (מעל 10MB) או בפורמט לא נתמך.' });
         }
 
         try {
@@ -605,7 +613,7 @@ app.post('/api/about-image', requireAuth, (req, res) => {
             res.json({ success: true, path: req.file.path });
         } catch (error) {
             console.error('Error saving about image:', error);
-            res.status(500).json({ error: 'Failed to save about image' });
+            res.status(500).json({ error: 'Failed to save about image: ' + error.message });
         }
     });
 });
