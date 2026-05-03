@@ -585,10 +585,22 @@ app.get('/gallery/:id', (req, res) => {
 app.post('/api/about-image', requireAuth, (req, res) => {
     uploaders.about.single('image')(req, res, async (err) => {
         if (err) {
-            console.error('About upload error:', err.message, err.stack);
+            // Log every property we can get our hands on
+            console.error('About upload error - full dump:', {
+                message: err.message,
+                name: err.name,
+                code: err.code,
+                http_code: err.http_code,
+                stack: err.stack,
+                stringified: JSON.stringify(err, Object.getOwnPropertyNames(err))
+            });
             return res.status(400).json({
                 error: err.message || 'Upload failed',
-                details: err.code || err.name || 'unknown'
+                details: err.code || err.name || 'unknown',
+                httpCode: err.http_code,
+                hint: err.message && err.message.includes('Invalid image')
+                    ? 'הפורמט של הקובץ לא נתמך. נסי JPG או PNG.'
+                    : 'נסי קובץ JPG/PNG אחר. אם זה אייפון, ודאי שלא בפורמט HEIC.'
             });
         }
 

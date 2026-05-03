@@ -525,7 +525,8 @@
                 renderAboutImage();
                 showToast('success', 'התמונה הועלתה בהצלחה');
             } else {
-                showToast('error', data.error || `שגיאה ${res.status}`);
+                const msg = data.hint || data.error || `שגיאה ${res.status}`;
+                showToast('error', msg);
                 console.error('Upload failed:', data);
             }
         } catch (e) {
