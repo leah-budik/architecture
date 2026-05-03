@@ -28,8 +28,10 @@ const LogoSchema = new mongoose.Schema({
 const HeroSchema = new mongoose.Schema({
     subtitle: { type: String, default: '' },
     title: [{ type: String }],
+    titleHighlight: { type: String, default: '' },
     description: { type: String, default: '' },
     ctaText: { type: String, default: '' },
+    tagline: { type: String, default: '' },
     images: [ImageSchema]
 }, { _id: false });
 
@@ -48,6 +50,8 @@ const AboutSchema = new mongoose.Schema({
     moreText: { type: String, default: '' },
     image: { type: String, default: '' },
     imagePublicId: { type: String },
+    signature: { type: String, default: '' },
+    signatureRole: { type: String, default: '' },
     stats: [StatSchema]
 }, { _id: false });
 
@@ -80,7 +84,16 @@ const ContactSchema = new mongoose.Schema({
     phone: { type: String, default: '' },
     phoneDisplay: { type: String, default: '' },
     email: { type: String, default: '' },
-    visualText: { type: String, default: '' }
+    address: { type: String, default: '' },
+    addressLabel: { type: String, default: '' },
+    visualText: { type: String, default: '' },
+    ctaText: { type: String, default: '' }
+}, { _id: false });
+
+// Social link schema
+const SocialLinkSchema = new mongoose.Schema({
+    name: { type: String, default: '' },
+    url: { type: String, default: '' }
 }, { _id: false });
 
 // Footer section schema
@@ -88,7 +101,19 @@ const FooterSchema = new mongoose.Schema({
     tagline: { type: String, default: '' },
     copyright: { type: String, default: '' },
     creditName: { type: String, default: '' },
-    creditPhone: { type: String, default: '' }
+    creditPhone: { type: String, default: '' },
+    socials: [SocialLinkSchema]
+}, { _id: false });
+
+// Marquee section schema
+const MarqueeSchema = new mongoose.Schema({
+    items: [{ type: String }]
+}, { _id: false });
+
+// Category filter schema
+const CategorySchema = new mongoose.Schema({
+    key: { type: String, default: '' },
+    label: { type: String, default: '' }
 }, { _id: false });
 
 // SEO schema
@@ -114,8 +139,10 @@ const SiteContentSchema = new mongoose.Schema({
     projects: { type: ProjectsSchema, default: () => ({ featured: [] }) },
     testimonials: [TestimonialSchema],
     contact: { type: ContactSchema, default: () => ({}) },
-    footer: { type: FooterSchema, default: () => ({}) },
-    seo: { type: SEOSchema, default: () => ({}) }
+    footer: { type: FooterSchema, default: () => ({ socials: [] }) },
+    seo: { type: SEOSchema, default: () => ({}) },
+    marquee: { type: MarqueeSchema, default: () => ({ items: [] }) },
+    categories: [CategorySchema]
 }, {
     timestamps: true,
     collection: 'sitecontent'

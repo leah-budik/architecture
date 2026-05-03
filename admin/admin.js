@@ -277,6 +277,8 @@
         setValue('hero-subtitle', hero.subtitle);
         setValue('hero-title-1', hero.title?.[0]);
         setValue('hero-title-2', hero.title?.[1]);
+        setValue('hero-title-highlight', hero.titleHighlight);
+        setValue('hero-tagline', hero.tagline);
         setValue('hero-description', hero.description);
         setValue('hero-cta', hero.ctaText);
 
@@ -315,6 +317,8 @@
         const heroData = {
             subtitle: getValue('hero-subtitle'),
             title: [getValue('hero-title-1'), getValue('hero-title-2')],
+            titleHighlight: getValue('hero-title-highlight'),
+            tagline: getValue('hero-tagline'),
             description: getValue('hero-description'),
             ctaText: getValue('hero-cta'),
             images: state.content?.hero?.images || []
@@ -401,6 +405,8 @@
         setValue('about-lead', about.lead);
         setValue('about-text', about.text);
         setValue('about-more', about.moreText);
+        setValue('about-signature', about.signature);
+        setValue('about-signature-role', about.signatureRole);
 
         if (about.stats) {
             setValue('about-stat-1-num', about.stats[0]?.number);
@@ -409,6 +415,8 @@
             setValue('about-stat-2-label', about.stats[1]?.label);
             setValue('about-stat-3-num', about.stats[2]?.number);
             setValue('about-stat-3-label', about.stats[2]?.label);
+            setValue('about-stat-4-num', about.stats[3]?.number);
+            setValue('about-stat-4-label', about.stats[3]?.label);
         }
     }
 
@@ -421,12 +429,15 @@
             lead: getValue('about-lead'),
             text: getValue('about-text'),
             moreText: getValue('about-more'),
+            signature: getValue('about-signature'),
+            signatureRole: getValue('about-signature-role'),
             image: state.content?.about?.image || '',
             stats: [
                 { number: getValue('about-stat-1-num'), label: getValue('about-stat-1-label') },
                 { number: getValue('about-stat-2-num'), label: getValue('about-stat-2-label') },
-                { number: getValue('about-stat-3-num'), label: getValue('about-stat-3-label') }
-            ]
+                { number: getValue('about-stat-3-num'), label: getValue('about-stat-3-label') },
+                { number: getValue('about-stat-4-num'), label: getValue('about-stat-4-label') }
+            ].filter(s => s.number || s.label)
         };
 
         try {
@@ -933,6 +944,9 @@
         setValue('contact-phone', contact.phone);
         setValue('contact-phone-display', contact.phoneDisplay);
         setValue('contact-email', contact.email);
+        setValue('contact-address', contact.address);
+        setValue('contact-address-label', contact.addressLabel);
+        setValue('contact-cta', contact.ctaText);
         setValue('contact-visual', contact.visualText?.replace(/\\n/g, '\n'));
     }
 
@@ -948,6 +962,9 @@
             phone: getValue('contact-phone'),
             phoneDisplay: getValue('contact-phone-display'),
             email: getValue('contact-email'),
+            address: getValue('contact-address'),
+            addressLabel: getValue('contact-address-label'),
+            ctaText: getValue('contact-cta'),
             visualText: getValue('contact-visual')?.replace(/\n/g, '\\n')
         };
 
@@ -1021,27 +1038,68 @@
         setValue('footer-copyright', footer.copyright);
         setValue('footer-credit-name', footer.creditName);
         setValue('footer-credit-phone', footer.creditPhone);
+
+        // Socials - find by name (case-insensitive)
+        const socials = footer.socials || [];
+        const findUrl = (name) => {
+            const s = socials.find(x => x.name && x.name.toLowerCase() === name);
+            return s ? s.url : '';
+        };
+        setValue('footer-instagram', findUrl('instagram'));
+        setValue('footer-facebook', findUrl('facebook'));
+        setValue('footer-pinterest', findUrl('pinterest'));
+        setValue('footer-linkedin', findUrl('linkedin'));
+
+        // Marquee items
+        const marqueeItems = state.content?.marquee?.items || [];
+        setValue('marquee-items', marqueeItems.join(', '));
     }
 
     window.saveFooter = async function() {
         showLoading();
 
-        const data = {
+        // Build socials array (only include those with a URL)
+        const socials = [];
+        const ig = getValue('footer-instagram');
+        const fb = getValue('footer-facebook');
+        const pn = getValue('footer-pinterest');
+        const li = getValue('footer-linkedin');
+        if (ig) socials.push({ name: 'Instagram', url: ig });
+        if (fb) socials.push({ name: 'Facebook', url: fb });
+        if (pn) socials.push({ name: 'Pinterest', url: pn });
+        if (li) socials.push({ name: 'LinkedIn', url: li });
+
+        const footerData = {
             tagline: getValue('footer-tagline'),
             copyright: getValue('footer-copyright'),
             creditName: getValue('footer-credit-name'),
-            creditPhone: getValue('footer-credit-phone')
+            creditPhone: getValue('footer-credit-phone'),
+            socials: socials
+        };
+
+        // Marquee items
+        const marqueeRaw = getValue('marquee-items') || '';
+        const marqueeData = {
+            items: marqueeRaw.split(',').map(s => s.trim()).filter(Boolean)
         };
 
         try {
-            const res = await fetch('/api/content/footer', {
+            // Save footer
+            const footerRes = await fetch('/api/content/footer', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(footerData)
+            });
+            // Save marquee
+            const marqueeRes = await fetch('/api/content/marquee', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(marqueeData)
             });
 
-            if (res.ok) {
-                state.content.footer = data;
+            if (footerRes.ok && marqueeRes.ok) {
+                state.content.footer = footerData;
+                state.content.marquee = marqueeData;
                 showToast('success', 'השינויים נשמרו');
             } else {
                 throw new Error();

@@ -1,783 +1,589 @@
 /**
- * LEAH BUDIK ARCHITECTURE
- * Premium JavaScript - Main Site
- * Luxury animations and interactions
+ * LEAH BUDIK ARCHITECTURE - Dynamic Frontend (Redesigned)
+ * Loads content + galleries from API and renders into the new design
  */
 
-(function() {
+(function () {
     'use strict';
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // CONFIGURATION
-    // ═══════════════════════════════════════════════════════════════════════════
-    const CONFIG = {
-        heroImages: [
-            '/public/images/a/1.jpg',
-            '/public/images/a/2.jpg',
-            '/public/images/a/3.jpg',
-            '/public/images/a/4.jpg'
-        ],
-        heroInterval: 5000,
-        scrollThreshold: 50,
-        revealThreshold: 0.15,
-        useDynamicContent: true // Set to true to load from API
-    };
+    // ─────────────────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────────────────
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SITE DATA (loaded from API)
-    // ═══════════════════════════════════════════════════════════════════════════
-    let siteContent = null;
-    let galleries = [];
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // DOM ELEMENTS
-    // ═══════════════════════════════════════════════════════════════════════════
-    const elements = {
-        loader: document.getElementById('loader'),
-        loaderBar: document.getElementById('loader-bar'),
-        header: document.getElementById('header'),
-        hamburger: document.getElementById('hamburger'),
-        mobileNav: document.getElementById('mobile-nav'),
-        mobileNavOverlay: document.getElementById('mobile-nav-overlay'),
-        mobileNavClose: document.getElementById('mobile-nav-close'),
-        heroImages: [],
-        slideCounter: document.getElementById('slide-current'),
-        aboutToggle: document.getElementById('about-toggle'),
-        aboutMore: document.getElementById('about-more'),
-        aboutToggleText: document.getElementById('about-toggle-text'),
-        testimonialsTrack: document.getElementById('testimonials-track'),
-        testimonialsPrev: document.getElementById('testimonials-prev'),
-        testimonialsNext: document.getElementById('testimonials-next'),
-        backToTop: document.getElementById('back-to-top'),
-        cursor: document.getElementById('cursor')
-    };
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // STATE
-    // ═══════════════════════════════════════════════════════════════════════════
-    let state = {
-        currentHeroSlide: 0,
-        heroInterval: null,
-        isMenuOpen: false,
-        scrollPosition: 0
-    };
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // LOADER
-    // ═══════════════════════════════════════════════════════════════════════════
-    function initLoader() {
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(interval);
-                setTimeout(() => {
-                    if (elements.loader) {
-                        elements.loader.classList.add('hidden');
-                    }
-                }, 300);
-            }
-            if (elements.loaderBar) {
-                elements.loaderBar.style.width = progress + '%';
-            }
-        }, 100);
+    function escapeHTML(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // HERO CAROUSEL
-    // ═══════════════════════════════════════════════════════════════════════════
-    function initHeroCarousel() {
-        // Clear any existing hero images array
-        elements.heroImages = [];
+    function setText(id, value) {
+        const el = document.getElementById(id);
+        if (el && value != null && value !== '') el.textContent = value;
+    }
 
-        // Get the hero background container
-        const heroBackground = document.querySelector('.hero__background');
-        if (!heroBackground) {
-            console.warn('Hero background container not found');
+    function setHTML(id, value) {
+        const el = document.getElementById(id);
+        if (el && value != null) el.innerHTML = value;
+    }
+
+    function setAttr(id, attr, value) {
+        const el = document.getElementById(id);
+        if (el && value) el.setAttribute(attr, value);
+    }
+
+    async function fetchJSON(url) {
+        try {
+            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return await res.json();
+        } catch (err) {
+            console.warn('Fetch failed:', url, err);
+            return null;
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Renderers
+    // ─────────────────────────────────────────────────────────────────────
+
+    function renderHero(content) {
+        if (!content) return;
+        const hero = content.hero || {};
+
+        if (hero.subtitle) setText('heroEyebrow', hero.subtitle);
+
+        // Title can be array of lines, or single string
+        if (Array.isArray(hero.title) && hero.title.length > 0) {
+            const line1 = hero.title[0] || '';
+            const line2 = hero.title[1] || '';
+            const highlight = hero.titleHighlight || '';
+
+            // Apply highlight word styling if found
+            let line2HTML = escapeHTML(line2);
+            if (highlight && line2.includes(highlight)) {
+                const parts = line2.split(highlight);
+                line2HTML = parts.map(escapeHTML).join(`<span class="ital">${escapeHTML(highlight)}</span>`);
+            }
+
+            const titleEl = document.getElementById('heroTitle');
+            if (titleEl) {
+                titleEl.innerHTML = `
+                    <span class="line1">${escapeHTML(line1)}</span>
+                    ${line2 ? `<span class="line2">${line2HTML}</span>` : ''}
+                `;
+            }
+        }
+
+        // Tagline
+        if (hero.tagline || hero.description) {
+            const tagline = hero.tagline || hero.description;
+            setText('heroTagline', tagline);
+        }
+
+        // CTA
+        if (hero.ctaText) setText('heroCtaText', hero.ctaText);
+
+        // Hero background image (use first hero image if available)
+        if (hero.images && hero.images.length > 0) {
+            const heroBg = document.getElementById('heroBg');
+            if (heroBg) {
+                heroBg.classList.add('has-image');
+                const img = document.createElement('img');
+                img.src = hero.images[0].path;
+                img.alt = '';
+                img.className = 'hero-bg__image';
+                img.loading = 'eager';
+                img.decoding = 'async';
+                heroBg.insertBefore(img, heroBg.firstChild);
+                // fade in once loaded
+                img.addEventListener('load', () => requestAnimationFrame(() => img.classList.add('active')));
+            }
+        }
+    }
+
+    function renderLogo(content) {
+        if (!content || !content.logo) return;
+        const logo = content.logo;
+
+        if (logo.main) {
+            // Replace text brand with image
+            const navBrand = document.getElementById('navBrandText');
+            if (navBrand) {
+                navBrand.outerHTML = `<img src="${escapeHTML(logo.main)}" alt="לאה בודיק" />`;
+            }
+            const footerBrand = document.getElementById('footerBrand');
+            if (footerBrand) {
+                footerBrand.outerHTML = `<img src="${escapeHTML(logo.main)}" alt="לאה בודיק" style="height: 28px; display: inline-block; vertical-align: middle;" />`;
+            }
+        }
+
+        if (logo.favicon) {
+            const favicon = document.getElementById('favicon');
+            if (favicon) favicon.href = logo.favicon;
+        }
+    }
+
+    function renderAbout(content) {
+        if (!content || !content.about) return;
+        const about = content.about;
+
+        if (about.label) setText('aboutLabel', about.label);
+
+        if (about.title) {
+            // Split title by newlines for multi-line layout (legacy single-string approach)
+            // Try to use as raw HTML if it contains tags, otherwise as text
+            if (about.title.includes('<')) {
+                setHTML('aboutTitle', about.title);
+            } else {
+                setText('aboutTitle', about.title);
+            }
+        }
+
+        if (about.text) setText('aboutText', about.text);
+        if (about.moreText) setText('aboutMoreText', about.moreText);
+        if (!about.moreText) {
+            const more = document.getElementById('aboutMoreText');
+            if (more) more.style.display = 'none';
+        }
+
+        if (about.signature) setText('aboutSig', about.signature);
+        if (about.signatureRole) setText('aboutSigMeta', about.signatureRole);
+
+        // About image
+        if (about.image) {
+            const imgEl = document.getElementById('aboutImage');
+            if (imgEl) {
+                imgEl.classList.add('has-image');
+                const img = document.createElement('img');
+                img.src = about.image;
+                img.alt = about.label || 'לאה בודיק';
+                img.loading = 'lazy';
+                img.decoding = 'async';
+                imgEl.appendChild(img);
+            }
+        }
+
+        // Stats
+        const statsEl = document.getElementById('statsGrid');
+        if (statsEl && Array.isArray(about.stats) && about.stats.length > 0) {
+            statsEl.innerHTML = about.stats.map((s, i) => {
+                const num = String(s.number || '');
+                // Detect plus/percent suffix and style it
+                const match = num.match(/^([\d.]+)\s*([+%٪]?)$/);
+                let numHTML;
+                if (match) {
+                    const base = match[1];
+                    const suffix = match[2];
+                    numHTML = `${escapeHTML(base)}${suffix ? `<span class="plus">${escapeHTML(suffix)}</span>` : ''}`;
+                } else {
+                    numHTML = escapeHTML(num);
+                }
+                return `
+                    <div class="stat">
+                        <span class="idx">— ${String(i + 1).padStart(2, '0')}</span>
+                        <span class="num">${numHTML}</span>
+                        <span class="lbl">${escapeHTML(s.label || '')}</span>
+                    </div>
+                `;
+            }).join('');
+        } else if (statsEl) {
+            // Hide if no stats
+            statsEl.style.display = 'none';
+        }
+    }
+
+    function renderMarquee(content) {
+        const trackEl = document.getElementById('marqueeTrack');
+        if (!trackEl) return;
+
+        let items = (content && content.marquee && Array.isArray(content.marquee.items))
+            ? content.marquee.items.filter(s => s && s.trim())
+            : [];
+
+        // Default fallback
+        if (items.length === 0) {
+            items = ['Residential', 'Penthouse', 'Villa', 'Kitchen', 'Bath', 'Bedroom'];
+        }
+
+        // Build the track (duplicated for seamless loop)
+        const buildItems = (list) => list.map((item, i) => {
+            const isFill = i % 2 === 1;
+            return `<span class="${isFill ? 'fill' : ''}">${escapeHTML(item)}</span><span class="dot">●</span>`;
+        }).join('');
+
+        trackEl.innerHTML = buildItems(items) + buildItems(items);
+    }
+
+    function renderProjects(content, galleries) {
+        const gridEl = document.getElementById('projectsGrid');
+        const filtersEl = document.getElementById('projectsFilters');
+        const countEl = document.getElementById('projectsCount');
+        if (!gridEl) return;
+
+        const list = Array.isArray(galleries)
+            ? galleries.filter(g => g.isActive !== false)
+            : [];
+
+        if (countEl) {
+            countEl.textContent = String(list.length).padStart(2, '0');
+        }
+
+        if (list.length === 0) {
+            gridEl.innerHTML = '<div class="empty-state">בקרוב פרויקטים חדשים</div>';
+            // Hide filters if no projects
+            if (filtersEl) filtersEl.style.display = 'none';
             return;
         }
 
-        // Remove existing hero image divs (except overlay)
-        const existingImages = heroBackground.querySelectorAll('.hero__image');
-        existingImages.forEach(img => img.remove());
+        // Build filter buttons from unique categories
+        if (filtersEl) {
+            const cats = (content && Array.isArray(content.categories) && content.categories.length > 0)
+                ? content.categories
+                : Array.from(new Set(list.map(g => g.category).filter(Boolean)))
+                    .map(c => ({ key: c, label: c }));
 
-        // Create hero image divs for all images in CONFIG
-        CONFIG.heroImages.forEach((imagePath, index) => {
-            const div = document.createElement('div');
-            div.className = 'hero__image';
-            div.id = 'hero-image-' + (index + 1);
-            div.style.backgroundImage = `url('${imagePath}')`;
-
-            // Insert before the overlay
-            const overlay = heroBackground.querySelector('.hero__overlay');
-            if (overlay) {
-                heroBackground.insertBefore(div, overlay);
-            } else {
-                heroBackground.appendChild(div);
-            }
-
-            elements.heroImages.push(div);
-        });
-
-        if (elements.heroImages.length === 0) {
-            console.warn('No hero images found');
-            return;
+            const filterHTML = `<button data-filter="all" class="active">הכל</button>` +
+                cats.map(c => `<button data-filter="${escapeHTML(c.key)}">${escapeHTML(c.label)}</button>`).join('');
+            filtersEl.innerHTML = filterHTML;
         }
 
-        // Set initial active slide immediately
-        elements.heroImages[0].classList.add('active');
+        // Patterns of layouts: tall, wide, regular, regular, tall, regular...
+        const layouts = ['tall', 'wide', 'wide', 'tall', '', ''];
+        const archVariants = ['arch-1', 'arch-2', 'arch-3', 'arch-4', 'arch-5', 'arch-6'];
 
-        // Update counter display
-        if (elements.slideCounter) {
-            elements.slideCounter.textContent = '01';
-        }
+        gridEl.innerHTML = list.map((g, i) => {
+            const layout = layouts[i % layouts.length];
+            const arch = archVariants[i % archVariants.length];
+            const cover = g.coverImage || (g.images && g.images[0] && g.images[0].path);
+            const num = String(i + 1).padStart(2, '0');
+            const total = String(list.length).padStart(2, '0');
+            const meta = g.images ? `${g.images.length} תמונות` : '';
+            const cat = g.category || '';
+            const safeId = encodeURIComponent(g.id || '');
+            const link = `/gallery/${safeId}`;
 
-        // Update total counter
-        const totalCounter = document.querySelector('.hero__counter-total');
-        if (totalCounter) {
-            totalCounter.textContent = '/ ' + String(elements.heroImages.length).padStart(2, '0');
-        }
+            return `
+                <article class="project match ${layout}" data-cat="${escapeHTML(cat)}">
+                    <a href="${link}" class="project-media" aria-label="${escapeHTML(g.name || 'פרויקט')}">
+                        <div class="imgph ${arch}${cover ? ' has-image' : ''}">
+                            ${cover ? `<img src="${escapeHTML(cover)}" alt="${escapeHTML(g.name || '')}" loading="lazy" decoding="async">` : ''}
+                            <span class="ph-label">${escapeHTML(g.name || '')}</span>
+                        </div>
+                        <div class="project-media-overlay" aria-hidden="true"></div>
+                        <div class="project-num">${num} / ${total}</div>
+                        ${cat ? `<div class="project-cat">${escapeHTML(cat)}</div>` : ''}
+                        <div class="project-view">לצפייה בפרויקט</div>
+                    </a>
+                    <div class="project-info">
+                        <div class="project-title">${escapeHTML(g.name || '')}</div>
+                        ${meta ? `<div class="project-meta">${escapeHTML(meta)}</div>` : ''}
+                    </div>
+                </article>
+            `;
+        }).join('');
 
-        // Start carousel auto-rotation
-        if (state.heroInterval) {
-            clearInterval(state.heroInterval);
-        }
-        state.heroInterval = setInterval(nextHeroSlide, CONFIG.heroInterval);
-    }
-
-    function nextHeroSlide() {
-        const prevIndex = state.currentHeroSlide;
-        state.currentHeroSlide = (state.currentHeroSlide + 1) % elements.heroImages.length;
-
-        elements.heroImages[prevIndex].classList.remove('active');
-        elements.heroImages[state.currentHeroSlide].classList.add('active');
-
-        // Update counter
-        if (elements.slideCounter) {
-            elements.slideCounter.textContent = String(state.currentHeroSlide + 1).padStart(2, '0');
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // HEADER SCROLL EFFECT
-    // ═══════════════════════════════════════════════════════════════════════════
-    function initHeaderScroll() {
-        function updateHeader() {
-            if (window.scrollY > CONFIG.scrollThreshold) {
-                elements.header?.classList.add('scrolled');
-            } else {
-                elements.header?.classList.remove('scrolled');
-            }
-        }
-
-        window.addEventListener('scroll', throttle(updateHeader, 100), { passive: true });
-        updateHeader();
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // MOBILE NAVIGATION
-    // ═══════════════════════════════════════════════════════════════════════════
-    function initMobileNav() {
-        if (!elements.hamburger || !elements.mobileNav) return;
-
-        // Toggle menu on hamburger click
-        elements.hamburger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleMenu();
-        });
-
-        // Close menu when clicking close button
-        elements.mobileNavClose?.addEventListener('click', () => {
-            closeMenu();
-        });
-
-        // Close menu when clicking overlay
-        elements.mobileNavOverlay?.addEventListener('click', () => {
-            closeMenu();
-        });
-
-        // Close menu when clicking links
-        const mobileLinks = elements.mobileNav.querySelectorAll('.mobile-nav__link');
-        mobileLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                closeMenu();
+        // Wire up filter buttons
+        if (filtersEl) {
+            filtersEl.addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-filter]');
+                if (!btn) return;
+                filtersEl.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+                const f = btn.dataset.filter;
+                const items = gridEl.querySelectorAll('.project');
+                if (f === 'all') {
+                    gridEl.classList.remove('filtering');
+                    items.forEach(i => i.classList.add('match'));
+                } else {
+                    gridEl.classList.add('filtering');
+                    items.forEach(i => i.classList.toggle('match', i.dataset.cat === f));
+                }
             });
-        });
+        }
+    }
 
-        // Close menu on escape
+    function renderTestimonials(content, testimonials) {
+        const gridEl = document.getElementById('testiGrid');
+        if (!gridEl) return;
+
+        // Get testimonials from either dedicated array or content.testimonials
+        let items = testimonials || (content && content.testimonials) || [];
+        items = items.filter(t => t && t.isActive !== false && (t.text || t.shortText));
+
+        if (items.length === 0) {
+            gridEl.innerHTML = '';
+            // Hide entire section if no testimonials
+            const section = gridEl.closest('section');
+            if (section) section.style.display = 'none';
+            return;
+        }
+
+        gridEl.innerHTML = items.map((t, i) => `
+            <div class="testi reveal${i > 0 ? ' delay-' + Math.min(i + 1, 3) : ''}">
+                <div class="quote-mark" aria-hidden="true">״</div>
+                <p class="quote">${escapeHTML(t.text || t.shortText || '')}</p>
+                <div class="author">
+                    <span class="name">${escapeHTML(t.authorName || '')}</span>
+                    ${t.authorRole ? `<span class="role">${escapeHTML(t.authorRole)}</span>` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderContact(content) {
+        if (!content || !content.contact) return;
+        const c = content.contact;
+
+        if (c.label) setText('contactLabel', c.label);
+        if (c.title) {
+            if (c.title.includes('<')) setHTML('contactTitle', c.title);
+            else setText('contactTitle', c.title);
+        }
+        if (c.description) setText('contactLede', c.description);
+        if (c.ctaText) setText('contactCta', c.ctaText);
+
+        // Build channels
+        const channelsEl = document.getElementById('contactChannels');
+        if (!channelsEl) return;
+
+        const channels = [];
+        if (c.phone) {
+            channels.push({
+                label: 'טלפון',
+                value: c.phoneDisplay || c.phone,
+                href: `tel:${c.phone.replace(/[^\d+]/g, '')}`,
+                ico: '☏'
+            });
+        }
+        if (c.whatsapp) {
+            const num = c.whatsapp.replace(/[^\d]/g, '');
+            channels.push({
+                label: 'WhatsApp',
+                value: c.whatsappDisplay || c.whatsapp,
+                href: `https://wa.me/${num}`,
+                ico: '✉',
+                external: true
+            });
+        }
+        if (c.email) {
+            channels.push({
+                label: 'אימייל',
+                value: c.email,
+                href: `mailto:${c.email}`,
+                ico: '@'
+            });
+        }
+        if (c.address) {
+            channels.push({
+                label: c.addressLabel || 'סטודיו',
+                value: c.address,
+                href: '#',
+                ico: '⌖'
+            });
+        }
+
+        // Set CTA href
+        const ctaEl = document.getElementById('contactCta');
+        if (ctaEl) {
+            if (c.whatsapp) {
+                const num = c.whatsapp.replace(/[^\d]/g, '');
+                ctaEl.href = `https://wa.me/${num}`;
+                ctaEl.setAttribute('rel', 'noopener noreferrer');
+                ctaEl.setAttribute('target', '_blank');
+            } else if (c.phone) {
+                ctaEl.href = `tel:${c.phone.replace(/[^\d+]/g, '')}`;
+            }
+        }
+
+        if (channels.length > 0) {
+            channelsEl.innerHTML = channels.map(ch => `
+                <a class="channel" href="${escapeHTML(ch.href)}"${ch.external ? ' target="_blank" rel="noopener noreferrer"' : ''}>
+                    <div class="channel-meta">
+                        <span class="lbl">${escapeHTML(ch.label)}</span>
+                        <span class="val">${escapeHTML(ch.value)}</span>
+                    </div>
+                    <span class="ico" aria-hidden="true">${ch.ico}</span>
+                </a>
+            `).join('');
+        } else {
+            channelsEl.style.display = 'none';
+        }
+    }
+
+    function renderFooter(content) {
+        if (!content) return;
+        const footer = content.footer || {};
+
+        if (footer.copyright) setText('footerCopyright', footer.copyright);
+
+        const creditsEl = document.getElementById('footerCredits');
+        if (creditsEl) {
+            const socials = Array.isArray(footer.socials) ? footer.socials.filter(s => s && s.url && s.name) : [];
+            if (socials.length > 0) {
+                creditsEl.innerHTML = socials.map(s =>
+                    `<a href="${escapeHTML(s.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(s.name)}</a>`
+                ).join('');
+            } else {
+                creditsEl.innerHTML = '';
+            }
+        }
+
+        // Update CTA labels from content if available
+        if (content.contact && content.contact.ctaText) {
+            const navCta = document.getElementById('navCta');
+            if (navCta) navCta.textContent = content.contact.ctaText;
+            const drawerCta = document.getElementById('mobileDrawerCta');
+            if (drawerCta) drawerCta.textContent = content.contact.ctaText;
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Behaviors (nav, drawer, scroll, reveal, smooth scroll)
+    // ─────────────────────────────────────────────────────────────────────
+
+    function initNav() {
+        const nav = document.getElementById('nav');
+        if (!nav) return;
+        const onScroll = () => {
+            if (window.scrollY > 24) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+    }
+
+    function initMobileDrawer() {
+        const burger = document.getElementById('navBurger');
+        const drawer = document.getElementById('mobileDrawer');
+        if (!burger || !drawer) return;
+
+        const close = () => {
+            drawer.classList.remove('open');
+            burger.classList.remove('open');
+            burger.setAttribute('aria-expanded', 'false');
+            drawer.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('no-scroll');
+        };
+        const open = () => {
+            drawer.classList.add('open');
+            burger.classList.add('open');
+            burger.setAttribute('aria-expanded', 'true');
+            drawer.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('no-scroll');
+        };
+        const toggle = () => {
+            if (drawer.classList.contains('open')) close();
+            else open();
+        };
+
+        burger.addEventListener('click', toggle);
+        drawer.addEventListener('click', (e) => {
+            if (e.target.closest('[data-drawer-close]')) close();
+        });
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && state.isMenuOpen) {
-                closeMenu();
-            }
+            if (e.key === 'Escape' && drawer.classList.contains('open')) close();
+        });
+        // Close on resize to desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 900 && drawer.classList.contains('open')) close();
         });
     }
 
-    function toggleMenu() {
-        state.isMenuOpen = !state.isMenuOpen;
-        elements.hamburger.classList.toggle('active', state.isMenuOpen);
-        elements.mobileNav.classList.toggle('active', state.isMenuOpen);
-        elements.mobileNavOverlay?.classList.toggle('active', state.isMenuOpen);
-        document.body.style.overflow = state.isMenuOpen ? 'hidden' : '';
-
-        // Update ARIA attributes for accessibility
-        elements.hamburger.setAttribute('aria-expanded', state.isMenuOpen);
-        elements.hamburger.setAttribute('aria-label', state.isMenuOpen ? 'סגור תפריט ניווט' : 'פתח תפריט ניווט');
-        elements.mobileNav?.setAttribute('aria-hidden', !state.isMenuOpen);
-        elements.mobileNavOverlay?.setAttribute('aria-hidden', !state.isMenuOpen);
-
-        // Focus management: move focus to close button when menu opens
-        if (state.isMenuOpen) {
-            elements.mobileNavClose?.focus();
+    function initRevealOnScroll() {
+        const els = document.querySelectorAll('.reveal:not(.in)');
+        if (!('IntersectionObserver' in window)) {
+            els.forEach(el => el.classList.add('in'));
+            return;
         }
-    }
-
-    function closeMenu() {
-        state.isMenuOpen = false;
-        elements.hamburger?.classList.remove('active');
-        elements.mobileNav?.classList.remove('active');
-        elements.mobileNavOverlay?.classList.remove('active');
-        document.body.style.overflow = '';
-
-        // Update ARIA attributes for accessibility
-        elements.hamburger?.setAttribute('aria-expanded', 'false');
-        elements.hamburger?.setAttribute('aria-label', 'פתח תפריט ניווט');
-        elements.mobileNav?.setAttribute('aria-hidden', 'true');
-        elements.mobileNavOverlay?.setAttribute('aria-hidden', 'true');
-
-        // Return focus to hamburger button
-        elements.hamburger?.focus();
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ABOUT SECTION - READ MORE
-    // ═══════════════════════════════════════════════════════════════════════════
-    function initAboutToggle() {
-        if (!elements.aboutToggle || !elements.aboutMore) return;
-
-        elements.aboutToggle.addEventListener('click', () => {
-            const isExpanded = elements.aboutMore.classList.contains('show');
-            elements.aboutMore.classList.toggle('show');
-
-            // Update ARIA expanded state for accessibility
-            elements.aboutToggle.setAttribute('aria-expanded', !isExpanded);
-
-            if (elements.aboutToggleText) {
-                elements.aboutToggleText.textContent = isExpanded ? 'קרא עוד' : 'הצג פחות';
-            }
-        });
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // TESTIMONIALS CAROUSEL
-    // ═══════════════════════════════════════════════════════════════════════════
-    function initTestimonialsCarousel() {
-        if (!elements.testimonialsTrack) return;
-
-        const scrollAmount = 400;
-
-        elements.testimonialsPrev?.addEventListener('click', () => {
-            elements.testimonialsTrack.scrollBy({
-                left: scrollAmount,
-                behavior: 'smooth'
-            });
-        });
-
-        elements.testimonialsNext?.addEventListener('click', () => {
-            elements.testimonialsTrack.scrollBy({
-                left: -scrollAmount,
-                behavior: 'smooth'
-            });
-        });
-
-        // Enable drag scrolling
-        let isDown = false;
-        let startX;
-        let scrollLeft;
-
-        elements.testimonialsTrack.addEventListener('mousedown', (e) => {
-            isDown = true;
-            elements.testimonialsTrack.style.cursor = 'grabbing';
-            startX = e.pageX - elements.testimonialsTrack.offsetLeft;
-            scrollLeft = elements.testimonialsTrack.scrollLeft;
-        });
-
-        elements.testimonialsTrack.addEventListener('mouseleave', () => {
-            isDown = false;
-            elements.testimonialsTrack.style.cursor = 'grab';
-        });
-
-        elements.testimonialsTrack.addEventListener('mouseup', () => {
-            isDown = false;
-            elements.testimonialsTrack.style.cursor = 'grab';
-        });
-
-        elements.testimonialsTrack.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - elements.testimonialsTrack.offsetLeft;
-            const walk = (x - startX) * 2;
-            elements.testimonialsTrack.scrollLeft = scrollLeft - walk;
-        });
-
-        elements.testimonialsTrack.style.cursor = 'grab';
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SCROLL REVEAL ANIMATIONS
-    // ═══════════════════════════════════════════════════════════════════════════
-    function initScrollReveal() {
-        const revealElements = document.querySelectorAll('.reveal');
-
-        if (revealElements.length === 0) return;
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    observer.unobserve(entry.target);
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    e.target.classList.add('in');
+                    io.unobserve(e.target);
                 }
             });
-        }, {
-            threshold: CONFIG.revealThreshold,
-            rootMargin: '0px 0px -50px 0px'
-        });
-
-        revealElements.forEach(el => observer.observe(el));
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        els.forEach(el => io.observe(el));
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // BACK TO TOP BUTTON
-    // ═══════════════════════════════════════════════════════════════════════════
-    function initBackToTop() {
-        if (!elements.backToTop) return;
-
-        function updateVisibility() {
-            if (window.scrollY > 500) {
-                elements.backToTop.classList.add('visible');
-            } else {
-                elements.backToTop.classList.remove('visible');
-            }
-        }
-
-        window.addEventListener('scroll', throttle(updateVisibility, 100), { passive: true });
-
-        elements.backToTop.addEventListener('click', () => {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        });
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // CUSTOM CURSOR (Desktop Only)
-    // ═══════════════════════════════════════════════════════════════════════════
-    function initCustomCursor() {
-        if (!elements.cursor || window.matchMedia('(hover: none)').matches) return;
-
-        let mouseX = 0;
-        let mouseY = 0;
-        let cursorX = 0;
-        let cursorY = 0;
-
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-        });
-
-        function animateCursor() {
-            const dx = mouseX - cursorX;
-            const dy = mouseY - cursorY;
-
-            cursorX += dx * 0.15;
-            cursorY += dy * 0.15;
-
-            elements.cursor.style.transform = `translate(${cursorX - 4}px, ${cursorY - 4}px)`;
-
-            requestAnimationFrame(animateCursor);
-        }
-
-        animateCursor();
-
-        // Expand cursor on interactive elements
-        const interactiveElements = document.querySelectorAll('a, button, .project-card, .gallery__item');
-        interactiveElements.forEach(el => {
-            el.addEventListener('mouseenter', () => {
-                elements.cursor.classList.add('cursor--expanded');
-            });
-            el.addEventListener('mouseleave', () => {
-                elements.cursor.classList.remove('cursor--expanded');
-            });
-        });
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SMOOTH SCROLL FOR ANCHOR LINKS
-    // ═══════════════════════════════════════════════════════════════════════════
     function initSmoothScroll() {
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                const href = this.getAttribute('href');
-                if (href === '#') return;
-
-                const target = document.querySelector(href);
-                if (target) {
-                    e.preventDefault();
-                    const headerHeight = elements.header?.offsetHeight || 80;
-                    const targetPosition = target.getBoundingClientRect().top + window.scrollY - headerHeight;
-
-                    window.scrollTo({
-                        top: targetPosition,
-                        behavior: 'smooth'
-                    });
-                }
-            });
+        document.addEventListener('click', (e) => {
+            const a = e.target.closest('a[href^="#"]');
+            if (!a) return;
+            const id = a.getAttribute('href');
+            if (id.length < 2) return;
+            const target = document.querySelector(id);
+            if (!target) return;
+            e.preventDefault();
+            const y = target.getBoundingClientRect().top + window.scrollY - 60;
+            window.scrollTo({ top: y, behavior: 'smooth' });
         });
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // PARALLAX EFFECTS
-    // ═══════════════════════════════════════════════════════════════════════════
-    function initParallax() {
-        const heroContent = document.querySelector('.hero__content');
-        if (!heroContent) return;
-
+    function initHeroParallax() {
+        const heroBg = document.getElementById('heroBg');
+        if (!heroBg) return;
+        let ticking = false;
         window.addEventListener('scroll', () => {
-            const scrolled = window.scrollY;
-            if (scrolled < window.innerHeight) {
-                heroContent.style.transform = `translateY(${scrolled * 0.3}px)`;
-                heroContent.style.opacity = 1 - (scrolled / window.innerHeight);
-            }
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+                const y = Math.min(window.scrollY, 800);
+                heroBg.style.transform = `translateY(${y * 0.15}px)`;
+                ticking = false;
+            });
         }, { passive: true });
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // UTILITY FUNCTIONS
-    // ═══════════════════════════════════════════════════════════════════════════
-    function throttle(func, limit) {
-        let inThrottle;
-        return function(...args) {
-            if (!inThrottle) {
-                func.apply(this, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
-            }
-        };
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // LOAD DYNAMIC CONTENT
-    // ═══════════════════════════════════════════════════════════════════════════
-    async function loadContent() {
-        if (!CONFIG.useDynamicContent) return;
-
-        try {
-            const [contentRes, galleriesRes] = await Promise.all([
-                fetch('/api/content'),
-                fetch('/api/galleries')
-            ]);
-
-            if (contentRes.ok) {
-                siteContent = await contentRes.json();
-                updatePageContent();
-            }
-            if (galleriesRes.ok) {
-                galleries = await galleriesRes.json();
-                updateGalleries();
-            }
-        } catch (error) {
-            console.log('Running in static mode - API not available');
+    function hideLoader() {
+        const loader = document.getElementById('siteLoader');
+        if (loader) {
+            setTimeout(() => loader.classList.add('hidden'), 100);
         }
     }
 
-    function updatePageContent() {
-        if (!siteContent) return;
+    // ─────────────────────────────────────────────────────────────────────
+    // Boot
+    // ─────────────────────────────────────────────────────────────────────
 
-        // Update Logo throughout the site
-        if (siteContent.logo) {
-            const logo = siteContent.logo;
+    async function boot() {
+        // Set up behaviors first - these don't depend on data
+        initNav();
+        initMobileDrawer();
+        initSmoothScroll();
+        initHeroParallax();
 
-            // Helper to format path - handles both local paths and Cloudinary URLs
-            const formatPath = (path) => {
-                if (!path) return '';
-                // If it's a full URL (Cloudinary), return as-is
-                if (path.startsWith('http://') || path.startsWith('https://')) {
-                    return path;
-                }
-                // For local paths, ensure starts with /
-                return path.startsWith('/') ? path : '/' + path;
-            };
+        // Fetch data in parallel
+        const [content, galleries] = await Promise.all([
+            fetchJSON('/api/content'),
+            fetchJSON('/api/galleries')
+        ]);
 
-            // Update all main logo images
-            if (logo.main) {
-                document.querySelectorAll('[data-logo="main"]').forEach(img => {
-                    img.src = formatPath(logo.main);
-                });
-            }
+        // Render everything (each renderer is defensive)
+        try { renderLogo(content); } catch (e) { console.error('Logo render failed:', e); }
+        try { renderHero(content); } catch (e) { console.error('Hero render failed:', e); }
+        try { renderAbout(content); } catch (e) { console.error('About render failed:', e); }
+        try { renderMarquee(content); } catch (e) { console.error('Marquee render failed:', e); }
+        try { renderProjects(content, galleries); } catch (e) { console.error('Projects render failed:', e); }
+        try { renderTestimonials(content); } catch (e) { console.error('Testimonials render failed:', e); }
+        try { renderContact(content); } catch (e) { console.error('Contact render failed:', e); }
+        try { renderFooter(content); } catch (e) { console.error('Footer render failed:', e); }
 
-            // Update favicon
-            if (logo.favicon) {
-                const favicon = document.getElementById('favicon');
-                if (favicon) {
-                    favicon.href = formatPath(logo.favicon);
-                }
-            } else if (logo.main) {
-                // Use main logo as favicon if no favicon is set
-                const favicon = document.getElementById('favicon');
-                if (favicon) {
-                    favicon.href = formatPath(logo.main);
-                }
-            }
-        }
-
-        // Update Hero Section
-        if (siteContent.hero) {
-            const hero = siteContent.hero;
-
-            // Update hero text
-            const heroSubtitle = document.querySelector('.hero__subtitle');
-            const heroTitle = document.querySelector('.hero__title');
-            const heroDescription = document.querySelector('.hero__description');
-            const heroCta = document.querySelector('.hero__cta .btn span');
-
-            if (heroSubtitle) heroSubtitle.textContent = hero.subtitle;
-            if (heroTitle && hero.title) {
-                heroTitle.innerHTML = hero.title.map(t => `<span>${t}</span>`).join('');
-            }
-            if (heroDescription) heroDescription.textContent = hero.description;
-            if (heroCta) heroCta.textContent = hero.ctaText;
-
-            // Update hero images if provided
-            if (hero.images && hero.images.length > 0) {
-                // Format paths - handles both local and Cloudinary URLs
-                CONFIG.heroImages = hero.images.map(img => {
-                    const path = img.path;
-                    // If it's a full URL (Cloudinary), return as-is
-                    if (path.startsWith('http://') || path.startsWith('https://')) {
-                        return path;
-                    }
-                    // For local paths, ensure starts with /
-                    return path.startsWith('/') ? path : '/' + path;
-                });
-            }
-        }
-
-        // Update About Section
-        if (siteContent.about) {
-            const about = siteContent.about;
-
-            const aboutLabel = document.querySelector('.about__label');
-            const aboutTitle = document.querySelector('.about__title');
-            const aboutLead = document.querySelector('.about__lead');
-            const aboutText = document.querySelector('.about__text');
-            const aboutMore = document.getElementById('about-more');
-            const aboutImage = document.querySelector('.about__image');
-
-            if (aboutLabel) aboutLabel.textContent = about.label;
-            if (aboutTitle) aboutTitle.textContent = about.title;
-            if (aboutLead) aboutLead.textContent = about.lead;
-            if (aboutText) aboutText.textContent = about.text;
-            if (aboutMore && about.moreText) {
-                aboutMore.innerHTML = about.moreText.replace(/\\n/g, '<br>');
-            }
-            if (aboutImage && about.image) {
-                // Handle both local and Cloudinary URLs
-                aboutImage.src = about.image.startsWith('http') ? about.image : '/' + about.image;
-            }
-
-            // Update stats
-            if (about.stats) {
-                const statNumbers = document.querySelectorAll('.about__stat-number');
-                const statLabels = document.querySelectorAll('.about__stat-label');
-
-                about.stats.forEach((stat, i) => {
-                    if (statNumbers[i]) statNumbers[i].textContent = stat.number;
-                    if (statLabels[i]) statLabels[i].textContent = stat.label;
-                });
-            }
-        }
-
-        // Update Quotes
-        if (siteContent.quotes && siteContent.quotes.length > 0) {
-            const quoteSections = document.querySelectorAll('.quote-section');
-            quoteSections.forEach((section, i) => {
-                if (siteContent.quotes[i]) {
-                    const quoteText = section.querySelector('.quote-section__text');
-                    const quoteAuthor = section.querySelector('.quote-section__author');
-
-                    if (quoteText) quoteText.textContent = siteContent.quotes[i].text;
-                    if (quoteAuthor) quoteAuthor.textContent = siteContent.quotes[i].author;
-                }
-            });
-        }
-
-        // Update Testimonials
-        if (siteContent.testimonials && siteContent.testimonials.length > 0) {
-            const track = document.getElementById('testimonials-track');
-            if (track) {
-                track.innerHTML = siteContent.testimonials.filter(t => t.isActive).map(t => `
-                    <div class="testimonial-card">
-                        <span class="testimonial-card__quote-icon">"</span>
-                        <p class="testimonial-card__text" data-full-text="${escapeHtml(t.text)}">
-                            ${escapeHtml(t.shortText || t.text)}
-                        </p>
-                        <div class="testimonial-card__author">
-                            <div class="testimonial-card__author-avatar">${t.authorInitial}</div>
-                            <div>
-                                <p class="testimonial-card__author-name">${escapeHtml(t.authorName)}</p>
-                                <p class="testimonial-card__author-role">${escapeHtml(t.authorRole)}</p>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-
-                // Re-init carousel after updating
-                initTestimonialsCarousel();
-            }
-        }
-
-        // Update Contact Section
-        if (siteContent.contact) {
-            const contact = siteContent.contact;
-
-            const contactLabel = document.querySelector('.contact__label');
-            const contactTitle = document.querySelector('.contact__title');
-            const contactDescription = document.querySelector('.contact__description');
-            const contactVisualText = document.querySelector('.contact__visual-text');
-
-            if (contactLabel) contactLabel.textContent = contact.label;
-            if (contactTitle) contactTitle.textContent = contact.title;
-            if (contactDescription) contactDescription.textContent = contact.description;
-            if (contactVisualText && contact.visualText) {
-                contactVisualText.innerHTML = contact.visualText.replace(/\\n/g, '<br>');
-            }
-
-            // Update contact methods
-            const whatsappLink = document.querySelector('.contact-method[href*="wa.me"]');
-            const phoneLink = document.querySelector('.contact-method[href^="tel:"]');
-            const emailLink = document.querySelector('.contact-method[href^="mailto:"]');
-
-            if (whatsappLink) {
-                whatsappLink.href = `https://wa.me/${contact.whatsapp}`;
-                const val = whatsappLink.querySelector('.contact-method__value');
-                if (val) val.textContent = contact.whatsappDisplay;
-            }
-            if (phoneLink) {
-                phoneLink.href = `tel:${contact.phone}`;
-                const val = phoneLink.querySelector('.contact-method__value');
-                if (val) val.textContent = contact.phoneDisplay;
-            }
-            if (emailLink) {
-                emailLink.href = `mailto:${contact.email}`;
-                const val = emailLink.querySelector('.contact-method__value');
-                if (val) val.textContent = contact.email;
-            }
-        }
-
-        // Update Footer
-        if (siteContent.footer) {
-            const footer = siteContent.footer;
-
-            const footerTagline = document.querySelector('.footer__tagline');
-            const footerCopyright = document.querySelector('.footer__copyright');
-            const footerCredit = document.querySelector('.footer__credit a');
-
-            if (footerTagline) footerTagline.textContent = footer.tagline;
-            if (footerCopyright) footerCopyright.textContent = footer.copyright;
-            if (footerCredit) {
-                footerCredit.textContent = footer.creditName;
-                footerCredit.href = `tel:${footer.creditPhone}`;
-            }
-        }
+        // Initialize reveal AFTER content is rendered (new elements have .reveal class)
+        requestAnimationFrame(() => {
+            initRevealOnScroll();
+            hideLoader();
+        });
     }
 
-    function updateGalleries() {
-        if (!galleries || galleries.length === 0) return;
-
-        const projectsGrid = document.querySelector('.projects__grid');
-        if (!projectsGrid) return;
-
-        // Get featured galleries only
-        const featured = galleries.filter(g => g.isFeatured && g.isActive);
-
-        if (featured.length === 0) return;
-
-        // Helper to format image path - handles both local and Cloudinary URLs
-        const formatImagePath = (path) => {
-            if (!path) return '';
-            if (path.startsWith('http://') || path.startsWith('https://')) {
-                return path;
-            }
-            return path.startsWith('/') ? path : '/' + path;
-        };
-
-        // All galleries now use the dynamic route /gallery/{id}
-        projectsGrid.innerHTML = featured.map((gallery, i) => `
-            <a href="/gallery/${gallery.id}" class="project-card reveal reveal-delay-${(i % 4) + 1}">
-                <img src="${formatImagePath(gallery.coverImage)}" alt="${escapeHtml(gallery.name)}" class="project-card__image">
-                <div class="project-card__overlay"></div>
-                <div class="project-card__content">
-                    <p class="project-card__category">${escapeHtml(gallery.category)}</p>
-                    <h3 class="project-card__title">${escapeHtml(gallery.name)}</h3>
-                    <p class="project-card__count">${gallery.images?.length || 0} תמונות</p>
-                </div>
-                <div class="project-card__arrow">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M7 17L17 7M17 7H7M17 7V17"/>
-                    </svg>
-                </div>
-            </a>
-        `).join('');
-
-        // Re-observe for scroll reveal
-        initScrollReveal();
-    }
-
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // INITIALIZE
-    // ═══════════════════════════════════════════════════════════════════════════
-    async function init() {
-        // Start loader
-        initLoader();
-
-        // Load dynamic content if available
-        await loadContent();
-
-        // Initialize all components
-        function initAllComponents() {
-            initHeroCarousel();
-            initHeaderScroll();
-            initMobileNav();
-            initAboutToggle();
-            initTestimonialsCarousel();
-            initScrollReveal();
-            initBackToTop();
-            initCustomCursor();
-            initSmoothScroll();
-            initParallax();
-        }
-
-        // Check if page is already loaded
-        if (document.readyState === 'complete') {
-            initAllComponents();
-        } else {
-            window.addEventListener('load', initAllComponents);
-        }
-    }
-
-    // Start the application when DOM is ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', boot);
     } else {
-        init();
+        boot();
     }
-
 })();

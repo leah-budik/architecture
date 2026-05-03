@@ -323,20 +323,29 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">כותרת שורה 1</label>
-                            <input type="text" class="form-input" id="hero-title-1" placeholder="מעצבים">
+                            <input type="text" class="form-input" id="hero-title-1" placeholder="אדריכלות">
                         </div>
                         <div class="form-group">
                             <label class="form-label">כותרת שורה 2</label>
-                            <input type="text" class="form-input" id="hero-title-2" placeholder="חלומות">
+                            <input type="text" class="form-input" id="hero-title-2" placeholder="של שקט">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">תיאור</label>
-                        <textarea class="form-textarea" id="hero-description" rows="3" placeholder="תכנון חכם, ניצול חללים..."></textarea>
+                        <label class="form-label">מילה מודגשת בזהב (חייבת להופיע בכותרת שורה 2)</label>
+                        <input type="text" class="form-input" id="hero-title-highlight" placeholder="של">
+                        <small style="color: #888; display: block; margin-top: 4px;">המילה הזאת תוצג באיטליקה זהב בתוך הכותרת</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">טקסט תחתון (Tagline)</label>
+                        <textarea class="form-textarea" id="hero-tagline" rows="2" placeholder="תכנון בתי מגורים יוקרתיים — חללים שמרגישים נכון, לא מרשימים."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">תיאור (לא בשימוש בעיצוב החדש - גיבוי)</label>
+                        <textarea class="form-textarea" id="hero-description" rows="2"></textarea>
                     </div>
                     <div class="form-group">
                         <label class="form-label">טקסט כפתור</label>
-                        <input type="text" class="form-input" id="hero-cta" placeholder="גלה את הפרויקטים">
+                        <input type="text" class="form-input" id="hero-cta" placeholder="לצפייה בפרויקטים">
                     </div>
                     <button class="btn btn--primary" onclick="saveHeroText()">שמור שינויים</button>
                 </div>
@@ -394,22 +403,39 @@
                         <textarea class="form-textarea" id="about-more" rows="6"></textarea>
                     </div>
 
+                    <h3 class="form-section-title">חתימה</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">חתימה (מופיעה תחת הטקסט)</label>
+                            <input type="text" class="form-input" id="about-signature" placeholder="— Leah Budik">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">תפקיד</label>
+                            <input type="text" class="form-input" id="about-signature-role" placeholder="FOUNDER & PRINCIPAL ARCHITECT">
+                        </div>
+                    </div>
+
                     <h3 class="form-section-title">סטטיסטיקות</h3>
                     <div class="form-row form-row--3">
                         <div class="form-group">
                             <label class="form-label">מספר 1</label>
-                            <input type="text" class="form-input" id="about-stat-1-num" placeholder="7+">
-                            <input type="text" class="form-input mt-8" id="about-stat-1-label" placeholder="שנות ניסיון">
+                            <input type="text" class="form-input" id="about-stat-1-num" placeholder="15+">
+                            <input type="text" class="form-input mt-8" id="about-stat-1-label" placeholder="שנות עיסוק">
                         </div>
                         <div class="form-group">
                             <label class="form-label">מספר 2</label>
-                            <input type="text" class="form-input" id="about-stat-2-num" placeholder="150+">
-                            <input type="text" class="form-input mt-8" id="about-stat-2-label" placeholder="פרויקטים">
+                            <input type="text" class="form-input" id="about-stat-2-num" placeholder="200+">
+                            <input type="text" class="form-input mt-8" id="about-stat-2-label" placeholder="פרויקטים מושלמים">
                         </div>
                         <div class="form-group">
                             <label class="form-label">מספר 3</label>
-                            <input type="text" class="form-input" id="about-stat-3-num" placeholder="100%">
-                            <input type="text" class="form-input mt-8" id="about-stat-3-label" placeholder="שביעות רצון">
+                            <input type="text" class="form-input" id="about-stat-3-num" placeholder="98%">
+                            <input type="text" class="form-input mt-8" id="about-stat-3-label" placeholder="לקוחות חוזרים">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">מספר 4</label>
+                            <input type="text" class="form-input" id="about-stat-4-num" placeholder="12">
+                            <input type="text" class="form-input mt-8" id="about-stat-4-label" placeholder="שיתופי פעולה">
                         </div>
                     </div>
 
@@ -573,9 +599,23 @@
                         <label class="form-label">אימייל</label>
                         <input type="email" class="form-input" id="contact-email">
                     </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">כתובת הסטודיו</label>
+                            <input type="text" class="form-input" id="contact-address" placeholder="רחוב מונטיפיורי 32, תל אביב">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">תווית הכתובת</label>
+                            <input type="text" class="form-input" id="contact-address-label" placeholder="סטודיו">
+                        </div>
+                    </div>
                     <div class="form-group">
-                        <label class="form-label">טקסט ויזואלי (שורות מופרדות בירידת שורה)</label>
-                        <textarea class="form-textarea" id="contact-visual" rows="3" placeholder="בואו&#10;ניצור&#10;יחד"></textarea>
+                        <label class="form-label">טקסט כפתור CTA הראשי</label>
+                        <input type="text" class="form-input" id="contact-cta" placeholder="קביעת פגישת היכרות">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">טקסט ויזואלי (גיבוי לעיצוב הישן)</label>
+                        <textarea class="form-textarea" id="contact-visual" rows="2"></textarea>
                     </div>
 
                     <button class="btn btn--primary" onclick="saveContact()">שמור שינויים</button>
@@ -653,6 +693,36 @@
                             <label class="form-label">טלפון מפתח</label>
                             <input type="text" class="form-input" id="footer-credit-phone" placeholder="0534807140">
                         </div>
+                    </div>
+
+                    <h3 class="form-section-title">רשתות חברתיות</h3>
+                    <p style="color: #888; font-size: 13px; margin-bottom: 12px;">השאר ריק כדי להסתיר את הקישור</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Instagram URL</label>
+                            <input type="text" class="form-input" id="footer-instagram" placeholder="https://instagram.com/...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Facebook URL</label>
+                            <input type="text" class="form-input" id="footer-facebook" placeholder="https://facebook.com/...">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Pinterest URL</label>
+                            <input type="text" class="form-input" id="footer-pinterest" placeholder="https://pinterest.com/...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">LinkedIn URL</label>
+                            <input type="text" class="form-input" id="footer-linkedin" placeholder="https://linkedin.com/in/...">
+                        </div>
+                    </div>
+
+                    <h3 class="form-section-title">שורת מילים נעות (Marquee)</h3>
+                    <p style="color: #888; font-size: 13px; margin-bottom: 12px;">הפרד את המילים בפסיקים. למשל: Residential, Penthouse, Villa, Kitchen, Bath, Bedroom</p>
+                    <div class="form-group">
+                        <label class="form-label">מילים בשורה הזורמת</label>
+                        <input type="text" class="form-input" id="marquee-items" placeholder="Residential, Penthouse, Villa, Kitchen, Bath, Bedroom">
                     </div>
 
                     <button class="btn btn--primary" onclick="saveFooter()">שמור שינויים</button>
