@@ -93,16 +93,21 @@
         if (hero.images && hero.images.length > 0) {
             const heroBg = document.getElementById('heroBg');
             if (heroBg) {
-                heroBg.classList.add('has-image');
                 const img = document.createElement('img');
-                img.src = hero.images[0].path;
                 img.alt = '';
                 img.className = 'hero-bg__image';
                 img.loading = 'eager';
                 img.decoding = 'async';
+                img.addEventListener('load', () => {
+                    heroBg.classList.add('has-image');
+                    requestAnimationFrame(() => img.classList.add('active'));
+                }, { once: true });
+                img.addEventListener('error', () => {
+                    console.warn('Hero image failed to load:', hero.images[0].path);
+                    img.remove();
+                }, { once: true });
+                img.src = hero.images[0].path;
                 heroBg.insertBefore(img, heroBg.firstChild);
-                // fade in once loaded
-                img.addEventListener('load', () => requestAnimationFrame(() => img.classList.add('active')));
             }
         }
     }
@@ -159,12 +164,16 @@
         if (about.image) {
             const imgEl = document.getElementById('aboutImage');
             if (imgEl) {
-                imgEl.classList.add('has-image');
                 const img = document.createElement('img');
-                img.src = about.image;
                 img.alt = about.label || 'לאה בודיק';
                 img.loading = 'lazy';
                 img.decoding = 'async';
+                img.addEventListener('load', () => imgEl.classList.add('has-image'), { once: true });
+                img.addEventListener('error', () => {
+                    console.warn('About image failed to load:', about.image);
+                    img.remove();
+                }, { once: true });
+                img.src = about.image;
                 imgEl.appendChild(img);
             }
         }
@@ -263,16 +272,20 @@
             const cover = g.coverImage || (g.images && g.images[0] && g.images[0].path);
             const num = String(i + 1).padStart(2, '0');
             const total = String(list.length).padStart(2, '0');
-            const meta = g.images ? `${g.images.length} תמונות` : '';
+            const meta = g.images && g.images.length ? `${g.images.length} תמונות` : '';
             const cat = g.category || '';
             const safeId = encodeURIComponent(g.id || '');
             const link = `/gallery/${safeId}`;
 
+            // NOTE: do NOT add `has-image` here yet — we add it after the
+            // image successfully loads (see the load handler below). This
+            // keeps the placeholder gradient + name visible while loading
+            // (or forever, if the image is broken).
             return `
                 <article class="project match ${layout}" data-cat="${escapeHTML(cat)}">
                     <a href="${link}" class="project-media" aria-label="${escapeHTML(g.name || 'פרויקט')}">
-                        <div class="imgph ${arch}${cover ? ' has-image' : ''}">
-                            ${cover ? `<img src="${escapeHTML(cover)}" alt="${escapeHTML(g.name || '')}" loading="lazy" decoding="async">` : ''}
+                        <div class="imgph ${arch}" data-imgph>
+                            ${cover ? `<img src="${escapeHTML(cover)}" alt="${escapeHTML(g.name || '')}" loading="lazy" decoding="async" data-cover-img>` : ''}
                             <span class="ph-label">${escapeHTML(g.name || '')}</span>
                         </div>
                         <div class="project-media-overlay" aria-hidden="true"></div>
@@ -287,6 +300,28 @@
                 </article>
             `;
         }).join('');
+
+        // Promote `has-image` only when the image actually loads. If it errors,
+        // remove the broken <img> so the placeholder gradient + name stay visible.
+        gridEl.querySelectorAll('img[data-cover-img]').forEach((img) => {
+            const ph = img.closest('[data-imgph]');
+            const finish = (ok) => {
+                if (!ph) return;
+                if (ok) ph.classList.add('has-image');
+                else img.remove();
+            };
+            if (img.complete && img.naturalWidth > 0) {
+                finish(true);
+            } else if (img.complete) {
+                finish(false);
+            } else {
+                img.addEventListener('load', () => finish(true), { once: true });
+                img.addEventListener('error', () => {
+                    console.warn('Cover image failed to load:', img.src);
+                    finish(false);
+                }, { once: true });
+            }
+        });
 
         // Wire up filter buttons
         if (filtersEl) {
