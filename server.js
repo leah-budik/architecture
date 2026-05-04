@@ -38,6 +38,9 @@ app.use(helmet({
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://api.fontshare.com", "data:"],
             // Inline scripts in HTML (small init scripts). Same-origin /public/js/*.js is the main bundle.
             scriptSrc: ["'self'", "'unsafe-inline'"],
+            // The admin panel uses lots of inline event handlers (onclick="...").
+            // helmet's default sets script-src-attr 'none' which would block them.
+            scriptSrcAttr: ["'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com", "https://*.cloudinary.com"],
             connectSrc: ["'self'"],
             frameAncestors: ["'none'"], // can't be embedded in <iframe> elsewhere
