@@ -643,6 +643,13 @@ body.no-scroll { overflow: hidden; }
 @media (max-width: 600px) { .marquee { padding: 22px 0; } }
 .marquee-track {
     display: inline-flex;
+    /* Force LTR layout direction so the track starts at the LEFT of the
+       container and extends rightward. Without this, on an RTL page the
+       track is right-aligned, and translateX(-X) leaves an empty gap on
+       the right side of the viewport — exactly the "empty patch" the
+       user reported. The Hebrew TEXT inside each item still renders
+       right-to-left correctly via the Unicode bidi algorithm. */
+    direction: ltr;
     gap: 0;
     animation: marquee 50s linear infinite;
     font-family: var(--serif);
@@ -660,11 +667,26 @@ body.no-scroll { overflow: hidden; }
     gap: clamp(80px, 10vw, 180px);
     flex-shrink: 0;
 }
-/* The visual breathing room between the end of one cycle and the start of the next */
+/* The visual breathing room between the end of one cycle and the start of the next.
+   Sized so it's clearly a "pause" without ever filling the entire viewport — the
+   user always sees at least some words on screen. */
 .marquee-track .marquee-gap {
     display: inline-block;
-    width: clamp(280px, 35vw, 720px);
+    width: clamp(160px, 18vw, 360px);
     flex-shrink: 0;
+    position: relative;
+}
+/* Thin gold horizontal line in the center of the gap as a subtle "cycle marker" */
+.marquee-track .marquee-gap::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 1px;
+    background: var(--gold);
+    opacity: 0.4;
 }
 .marquee-track .dot {
     color: var(--gold);
