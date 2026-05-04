@@ -95,25 +95,60 @@
         // CTA
         if (hero.ctaText) setText('heroCtaText', hero.ctaText);
 
-        // Hero background image (use first hero image if available)
+        // Hero background images — cycle through all uploaded hero images.
+        // First image fades in immediately; subsequent images cross-fade in
+        // sequence on a 6-second interval. If only one image, no cycling.
         if (hero.images && hero.images.length > 0) {
             const heroBg = document.getElementById('heroBg');
             if (heroBg) {
-                const img = document.createElement('img');
-                img.alt = '';
-                img.className = 'hero-bg__image';
-                img.loading = 'eager';
-                img.decoding = 'async';
-                img.addEventListener('load', () => {
+                const imgs = hero.images.map((heroImg, idx) => {
+                    const img = document.createElement('img');
+                    img.alt = '';
+                    img.className = 'hero-bg__image';
+                    img.loading = idx === 0 ? 'eager' : 'lazy';
+                    img.decoding = 'async';
+                    img.dataset.idx = String(idx);
+                    img.addEventListener('error', () => {
+                        console.warn('Hero image failed to load:', heroImg.path);
+                        img.remove();
+                    }, { once: true });
+                    return img;
+                });
+
+                // Insert all images at the start (behind the vignette/noise overlays)
+                imgs.reverse().forEach(img => heroBg.insertBefore(img, heroBg.firstChild));
+                imgs.reverse(); // restore order
+
+                // Activate first image once it loads, mark heroBg as image-bearing
+                const firstImg = imgs[0];
+                const activateFirst = () => {
                     heroBg.classList.add('has-image');
-                    requestAnimationFrame(() => img.classList.add('active'));
-                }, { once: true });
-                img.addEventListener('error', () => {
-                    console.warn('Hero image failed to load:', hero.images[0].path);
-                    img.remove();
-                }, { once: true });
-                img.src = hero.images[0].path;
-                heroBg.insertBefore(img, heroBg.firstChild);
+                    requestAnimationFrame(() => firstImg.classList.add('active'));
+                };
+                if (firstImg.complete && firstImg.naturalWidth > 0) {
+                    activateFirst();
+                } else {
+                    firstImg.addEventListener('load', activateFirst, { once: true });
+                }
+
+                // Trigger the actual src loads (do this after wiring listeners)
+                imgs.forEach((img, idx) => {
+                    img.src = hero.images[idx].path;
+                });
+
+                // Auto-cycle if more than one image
+                if (imgs.length > 1) {
+                    let active = 0;
+                    const SWAP_MS = 6000;
+                    setInterval(() => {
+                        const next = (active + 1) % imgs.length;
+                        // Skip removed/broken images
+                        if (!imgs[next].isConnected) return;
+                        imgs[active].classList.remove('active');
+                        imgs[next].classList.add('active');
+                        active = next;
+                    }, SWAP_MS);
+                }
             }
         }
     }
