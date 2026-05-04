@@ -643,7 +643,7 @@ body.no-scroll { overflow: hidden; }
 @media (max-width: 600px) { .marquee { padding: 22px 0; } }
 .marquee-track {
     display: inline-flex;
-    gap: 56px;
+    gap: clamp(80px, 10vw, 180px);
     animation: marquee 50s linear infinite;
     font-family: var(--serif);
     font-size: clamp(36px, 7vw, 96px);
@@ -656,8 +656,10 @@ body.no-scroll { overflow: hidden; }
 .marquee-track .dot {
     color: var(--gold);
     font-style: normal;
-    transform: translateY(-0.15em);
+    font-size: 0.4em;
+    transform: translateY(-0.5em);
     display: inline-block;
+    opacity: 0.7;
 }
 .marquee-track span:not(.dot) {
     -webkit-text-stroke: 1px rgba(255, 255, 255, 0.6);
