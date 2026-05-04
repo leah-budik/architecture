@@ -639,6 +639,14 @@ body.no-scroll { overflow: hidden; }
     padding: 32px 0;
     white-space: nowrap;
     background: var(--bg);
+    /* Force LTR on the marquee container itself so the inline-flex .marquee-track
+       inside is left-aligned within the parent. Without this, the page's
+       inherited dir='rtl' causes inline content to be right-aligned, which
+       leaves an empty gap on the right whenever the animation translates the
+       track leftward — the user keeps seeing 'יצא ולא נכנס'. Hebrew letters
+       inside each word still render right-to-left via Unicode bidi. */
+    direction: ltr;
+    text-align: left;
 }
 @media (max-width: 600px) { .marquee { padding: 22px 0; } }
 .marquee-track {
