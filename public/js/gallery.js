@@ -53,9 +53,12 @@
     function initMobileDrawer() {
         const burger = $('#navBurger');
         const drawer = $('#mobileDrawer');
+        const backdrop = $('#mobileBackdrop');
+        const closeBtn = $('#mobileDrawerClose');
         if (!burger || !drawer) return;
         const close = () => {
             drawer.classList.remove('open');
+            if (backdrop) backdrop.classList.remove('open');
             burger.classList.remove('open');
             burger.setAttribute('aria-expanded', 'false');
             drawer.setAttribute('aria-hidden', 'true');
@@ -63,6 +66,7 @@
         };
         const open = () => {
             drawer.classList.add('open');
+            if (backdrop) backdrop.classList.add('open');
             burger.classList.add('open');
             burger.setAttribute('aria-expanded', 'true');
             drawer.setAttribute('aria-hidden', 'false');
@@ -72,6 +76,8 @@
             if (drawer.classList.contains('open')) close();
             else open();
         });
+        if (closeBtn) closeBtn.addEventListener('click', close);
+        if (backdrop) backdrop.addEventListener('click', close);
         drawer.addEventListener('click', (e) => {
             if (e.target.closest('[data-drawer-close]')) close();
         });

@@ -324,15 +324,24 @@
         </button>
     </nav>
 
+    <div class="mobile-backdrop" id="mobileBackdrop" aria-hidden="true"></div>
+
     <div class="mobile-drawer" id="mobileDrawer" aria-hidden="true">
-        <ul class="mobile-drawer__list">
-            <li><a href="/" data-drawer-close>בית</a></li>
-            <li><a href="/#about" data-drawer-close>אודות</a></li>
-            <li><a href="/#projects" data-drawer-close>פרויקטים</a></li>
-            <li><a href="/#testimonials" data-drawer-close>המלצות</a></li>
-            <li><a href="/#contact" data-drawer-close>צור קשר</a></li>
-        </ul>
-        <a href="/#contact" class="mobile-drawer__cta" data-drawer-close>קביעת פגישה</a>
+        <button class="mobile-drawer__close" id="mobileDrawerClose" aria-label="סגור תפריט" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+        </button>
+        <div class="mobile-drawer__inner">
+            <ul class="mobile-drawer__list">
+                <li><a href="/" data-drawer-close>בית</a></li>
+                <li><a href="/#about" data-drawer-close>אודות</a></li>
+                <li><a href="/#projects" data-drawer-close>פרויקטים</a></li>
+                <li><a href="/#testimonials" data-drawer-close>המלצות</a></li>
+                <li><a href="/#contact" data-drawer-close>צור קשר</a></li>
+            </ul>
+            <a href="/#contact" class="mobile-drawer__cta" data-drawer-close>קביעת פגישה</a>
+        </div>
     </div>
 
     <main id="main">
