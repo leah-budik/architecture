@@ -297,13 +297,36 @@
             items = ['Residential', 'Penthouse', 'Villa', 'Kitchen', 'Bath', 'Bedroom'];
         }
 
-        // Build the track (duplicated for seamless loop)
         const buildItems = (list) => list.map((item, i) => {
             const isFill = i % 2 === 1;
             return `<span class="${isFill ? 'fill' : ''}">${escapeHTML(item)}</span><span class="dot">●</span>`;
         }).join('');
 
-        trackEl.innerHTML = buildItems(items) + buildItems(items);
+        // First pass: render a single copy to measure how wide it is.
+        const singleHTML = buildItems(items);
+        trackEl.innerHTML = singleHTML;
+
+        // Wait for layout, then figure out how many copies we need to keep the
+        // viewport always covered during the marquee animation. Without this,
+        // when the user has only a few short words, one copy is narrower than
+        // the screen, so when we translateX(-50%) there's a visible gap before
+        // the next copy enters from the other side — exactly the bug reported.
+        requestAnimationFrame(() => {
+            const singleWidth = trackEl.scrollWidth;
+            const containerEl = trackEl.parentElement;
+            const containerWidth = (containerEl && containerEl.clientWidth) || window.innerWidth;
+
+            // We need the duplicated track to be AT LEAST 2× container width.
+            // copies = how many times to repeat the single set inside the track.
+            let copies = 2;
+            if (singleWidth > 0) {
+                copies = Math.max(2, Math.ceil((containerWidth * 2) / singleWidth));
+            }
+
+            trackEl.innerHTML = singleHTML.repeat(copies);
+            // The animation shifts by exactly one copy, regardless of how many copies we have.
+            trackEl.style.setProperty('--marquee-shift', `-${(100 / copies).toFixed(4)}%`);
+        });
     }
 
     function renderProjects(content, galleries) {
