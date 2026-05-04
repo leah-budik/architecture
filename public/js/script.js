@@ -326,6 +326,14 @@
             trackEl.innerHTML = singleHTML.repeat(copies);
             // The animation shifts by exactly one copy, regardless of how many copies we have.
             trackEl.style.setProperty('--marquee-shift', `-${(100 / copies).toFixed(4)}%`);
+
+            // Constant scrolling speed regardless of how short the user's word
+            // list is. Animation duration = (one copy width) / (target speed).
+            // Without this, the CSS default of 50s makes a short word list crawl
+            // across at ~10 px/s — feels broken even though it's looping.
+            const PX_PER_SEC = 70;
+            const durationSec = Math.max(8, singleWidth / PX_PER_SEC);
+            trackEl.style.animationDuration = `${durationSec.toFixed(2)}s`;
         });
     }
 
