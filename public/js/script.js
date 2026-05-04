@@ -297,13 +297,19 @@
             items = ['Residential', 'Penthouse', 'Villa', 'Kitchen', 'Bath', 'Bedroom'];
         }
 
-        const buildItems = (list) => list.map((item, i) => {
-            const isFill = i % 2 === 1;
-            return `<span class="${isFill ? 'fill' : ''}">${escapeHTML(item)}</span><span class="dot">●</span>`;
-        }).join('');
+        // Each "set" = the words with subtle dots between them, followed by
+        // a wide visual gap. The gap (`.marquee-gap`) is what the user sees
+        // between the end of one cycle and the start of the next.
+        const buildSet = (list) => {
+            const inner = list.map((item, i) => {
+                const isFill = i % 2 === 1;
+                return `<span class="${isFill ? 'fill' : ''}">${escapeHTML(item)}</span>`;
+            }).join('<span class="dot">●</span>');
+            return `<span class="marquee-set">${inner}</span><span class="marquee-gap" aria-hidden="true"></span>`;
+        };
 
-        // First pass: render a single copy to measure how wide it is.
-        const singleHTML = buildItems(items);
+        // First pass: render a single set+gap to measure how wide it is.
+        const singleHTML = buildSet(items);
         trackEl.innerHTML = singleHTML;
 
         // Wait for layout, then figure out how many copies we need to keep the

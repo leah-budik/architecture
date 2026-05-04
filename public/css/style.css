@@ -643,7 +643,7 @@ body.no-scroll { overflow: hidden; }
 @media (max-width: 600px) { .marquee { padding: 22px 0; } }
 .marquee-track {
     display: inline-flex;
-    gap: clamp(80px, 10vw, 180px);
+    gap: 0;
     animation: marquee 50s linear infinite;
     font-family: var(--serif);
     font-size: clamp(36px, 7vw, 96px);
@@ -652,6 +652,19 @@ body.no-scroll { overflow: hidden; }
     color: var(--fg);
     letter-spacing: -0.02em;
     line-height: 1;
+}
+/* A "set" — the actual words with internal spacing */
+.marquee-track .marquee-set {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(80px, 10vw, 180px);
+    flex-shrink: 0;
+}
+/* The visual breathing room between the end of one cycle and the start of the next */
+.marquee-track .marquee-gap {
+    display: inline-block;
+    width: clamp(280px, 35vw, 720px);
+    flex-shrink: 0;
 }
 .marquee-track .dot {
     color: var(--gold);
