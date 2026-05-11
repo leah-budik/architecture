@@ -68,16 +68,18 @@ StylePresetSchema.methods.toClientJSON = function () {
 // ─────────────────────────────────────────────────────────────────────
 // Seed data — the 5 Leah Budik presets, per the brand DNA in CLAUDE.md.
 //
-// Prompts are written in English (Flux Kontext understands English best)
-// in editorial prose, naming specific materials, fixtures and palette so
-// the model has concrete visual targets rather than abstract adjectives.
+// v3 rewrite — shorter, room-agnostic, structured.
 //
-// Each preset starts with "Apply a <X> interior aesthetic" — this framing
-// reads as an instruction to Flux Kontext, which is an instruction-tuned
-// image editor. The structure inside is intentional:
-//   Surfaces and finishes → Lighting → Furniture → Palette → Mood
+// Each preset uses the same 4-block structure so Flux Kontext can parse
+// it as discrete directives rather than a wall of prose:
+//   Materials → Lighting → Palette → Mood
+//
+// Items named are aesthetic targets (cabinets, countertops, hardware,
+// fixtures, fabrics) NOT specific furniture types — the previous v2
+// prompts mentioned "sofas" and "wide-plank flooring" which derailed
+// the model on kitchens and bathrooms.
 // ─────────────────────────────────────────────────────────────────────
-const SEED_PROMPT_VERSION = 2;
+const SEED_PROMPT_VERSION = 3;
 
 const SEED_PRESETS = [
     {
@@ -88,18 +90,17 @@ const SEED_PRESETS = [
         order: 1,
         promptLayers: {
             style:
-                'Apply a quiet-luxury minimalist Italian interior aesthetic. ' +
-                'Surfaces and finishes: rich dark walnut wood paneling with visible ' +
-                'vertical grain, book-matched white Arabescato marble with soft grey ' +
-                'veining in a polished satin finish, brushed antique-brass hardware ' +
-                'and trim, cream linen upholstery on low-slung sofas, wide-plank oak ' +
-                'flooring. Lighting: hidden warm-white LED strips concealed behind ' +
-                'ceiling reveals, discreet recessed pin spots, one sculptural alabaster ' +
-                'pendant — no visible can lights. Furniture: low Italian mid-century ' +
-                'pieces in restrained scale, generous negative space. Palette: warm ' +
-                'off-white walls, walnut tones, ivory, soft taupe, single brushed-brass ' +
-                'accent. Mood: hushed, intimate, lived-in luxury — never showy, never ' +
-                'glossy.'
+                'Quiet-luxury Italian minimalism, the signature of Leah Budik. ' +
+                'Materials: book-matched dark walnut wood with visible vertical ' +
+                'grain on cabinetry and joinery; polished Arabescato marble ' +
+                '(white with soft grey veining) on every visible countertop, ' +
+                'backsplash and feature surface; brushed antique-brass hardware ' +
+                'and slim edge pulls; ivory wool or cream linen upholstery. ' +
+                'Lighting: hidden warm-white LED strips under upper cabinetry, ' +
+                'shelving and ceiling reveals; one sculptural alabaster pendant; ' +
+                'no visible can lights. Palette: warm ivory, dark walnut, soft ' +
+                'taupe, single brushed-brass accent. Mood: hushed, intimate, ' +
+                'lived-in restraint — never showy, never glossy.'
         }
     },
     {
@@ -110,17 +111,16 @@ const SEED_PRESETS = [
         order: 2,
         promptLayers: {
             style:
-                'Apply a Japandi interior aesthetic — Japanese minimalism crossed ' +
-                'with Scandinavian warmth. Surfaces and finishes: pale white-oak ' +
-                'flooring and joinery with visible grain, warm cream travertine slab ' +
-                'walls or accents, hand-thrown ceramic vessels, undyed natural linen, ' +
-                'raw oiled wood. Lighting: large rice-paper pendants, hidden warm ' +
-                'LED strips on shelving, soft diffused window light. Furniture: low ' +
-                'platform seating, simple turned-wood stools, woven floor cushions, ' +
-                'one minimal ikebana arrangement; empty space treated as a deliberate ' +
-                'design element. Palette: bone white, pale oak, soft sand, gentle ' +
-                'moss green, single charcoal accent. Mood: serene, grounded, ' +
-                'wabi-sabi calm — the silence between objects matters.'
+                'Japandi — Japanese minimalism crossed with Scandinavian warmth. ' +
+                'Materials: pale white-oak with visible grain on cabinetry, ' +
+                'shelving and flooring; warm cream travertine on countertops, ' +
+                'backsplashes and feature walls; undyed natural linen fabrics; ' +
+                'hand-thrown ceramic accents; oiled raw wood. Lighting: one ' +
+                'large rice-paper pendant; hidden warm LED strips on shelving; ' +
+                'soft diffused window light. Palette: bone white, pale oak, ' +
+                'soft sand, gentle moss-green accent, single charcoal note. ' +
+                'Mood: serene wabi-sabi calm, empty space treated as an ' +
+                'intentional design element.'
         }
     },
     {
@@ -131,18 +131,15 @@ const SEED_PRESETS = [
         order: 3,
         promptLayers: {
             style:
-                'Apply a modern-classicism interior aesthetic — restrained timeless ' +
-                'luxury. Surfaces and finishes: subtle painted wall moldings and ' +
-                'panel work in soft off-white, large-format polished Calacatta marble ' +
-                'floors or a single feature wall, brushed antique-brass hardware on ' +
-                'built-in cabinetry, silk-blend drapery in cream, tailored bouclé and ' +
-                'velvet upholstery. Lighting: a pair of matching crystal-and-brass ' +
-                'sconces flanking the main feature, one sculptural chandelier with ' +
-                'hand-blown glass, hidden cove lighting. Furniture: perfectly ' +
-                'symmetric layout, fluted millwork, deco-influenced silhouettes. ' +
-                'Palette: warm ivory, ecru, polished brass, pale dove-grey marble ' +
-                'veining. Mood: composed, elegant, ageless — the kind of room a ' +
-                'designer would live in.'
+                'Modern classicism — restrained timeless luxury. Materials: ' +
+                'subtle painted wall moldings and panel work in soft off-white; ' +
+                'large-format polished Calacatta marble on countertops, floors ' +
+                'or a single feature wall; brushed antique-brass hardware on ' +
+                'built-ins; silk-blend cream drapery; tailored bouclé and ' +
+                'velvet upholstery. Lighting: a matching pair of crystal-and-brass ' +
+                'sconces; one sculptural hand-blown glass chandelier; hidden cove ' +
+                'lighting. Palette: warm ivory, ecru, polished brass, pale ' +
+                'dove-grey marble. Mood: composed, symmetric, ageless.'
         }
     },
     {
@@ -153,18 +150,16 @@ const SEED_PRESETS = [
         order: 4,
         promptLayers: {
             style:
-                'Apply a refined industrial loft interior aesthetic — softened, ' +
-                'never raw. Surfaces and finishes: polished microcement floors with ' +
-                'subtle grey mottle, matte concrete feature wall, slim black-steel ' +
-                'window frames and Crittall-style screens, warm walnut joinery and ' +
-                'shelving to balance the cool concrete, aged tan-leather upholstery, ' +
-                'brushed-steel accents. Lighting: black architectural track spots ' +
-                'aimed precisely, one oversized industrial pendant in blackened ' +
-                'brass, hidden LED under cantilevered shelves. Furniture: mid-century ' +
-                'industrial silhouettes, a low leather sofa, vintage Tolix-style ' +
-                'stools. Palette: cool grey concrete, deep walnut, black steel, warm ' +
-                'tan leather, single ember accent. Mood: confident, urban, masculine ' +
-                '— but warmed by wood and leather, never cold.'
+                'Refined industrial loft — softened, never raw. Materials: ' +
+                'polished microcement floors with subtle grey mottle; matte ' +
+                'concrete feature wall; slim black-steel framing on glass ' +
+                'openings and shelving; warm walnut joinery, cabinetry and ' +
+                'shelving balancing the cool concrete; aged tan-leather ' +
+                'upholstery; brushed-steel accents. Lighting: black architectural ' +
+                'track spots aimed precisely; one oversized blackened-brass ' +
+                'pendant; hidden LED under cantilevered shelves. Palette: cool ' +
+                'grey concrete, deep walnut, black steel, warm tan leather. ' +
+                'Mood: confident urban, warmed by wood and leather — never cold.'
         }
     },
     {
@@ -175,19 +170,16 @@ const SEED_PRESETS = [
         order: 5,
         promptLayers: {
             style:
-                'Apply a modern Mediterranean interior aesthetic — Tel-Aviv coastal ' +
-                'architecture meets Greek-island calm. Surfaces and finishes: ' +
-                'whitewashed plaster walls with subtle hand-applied texture, creamy ' +
-                'honed limestone floors, bleached-oak joinery, large minimalist ' +
-                'black-framed glass vitrines and pivot doors flooding the space with ' +
-                'daylight, natural-linen drapery in oatmeal. Lighting: brilliant ' +
-                'natural Mediterranean afternoon sun pouring through huge openings; ' +
-                'minimal artificial light — only one rattan or paper pendant and ' +
-                'hidden warm LED strips on shelving. Furniture: airy low silhouettes, ' +
-                'woven rattan, organic-curve plaster benches, a single olive-tree ' +
-                'planter. Palette: bone white, sand, bleached oak, soft sage, ' +
-                'terracotta accent, glimpses of sky blue outside. Mood: serene, ' +
-                'sun-drenched, breathing — the interior dissolves into landscape.'
+                'Modern Mediterranean — Tel-Aviv coastal calm. Materials: ' +
+                'whitewashed plaster walls with subtle hand-applied texture; ' +
+                'honed creamy limestone floors and countertops; bleached-oak ' +
+                'cabinetry and joinery; slim black-framed glass openings ' +
+                'flooding the space with daylight; natural-linen drapery in ' +
+                'oatmeal. Lighting: brilliant natural Mediterranean afternoon ' +
+                'sun through large openings; one rattan or paper pendant; ' +
+                'hidden warm LED on shelving. Palette: bone white, sand, ' +
+                'bleached oak, soft sage, single terracotta accent. Mood: ' +
+                'serene sun-drenched — interior dissolves into landscape.'
         }
     }
 ];
