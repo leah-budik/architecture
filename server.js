@@ -650,6 +650,31 @@ function getPublicBaseUrl(req) {
     return null; // local dev: no webhook, frontend will poll Replicate via us
 }
 
+// POST /api/v1/design/upload — accept a single room photo from the admin,
+// stash it in Cloudinary under leah-budik/design-inputs/, and return the URL
+// the client will then pass to /generate.
+//
+// Kept as a separate endpoint (rather than uploading inside /generate) so
+// that the admin can preview the image before committing to a paid Replicate
+// run, and so the upload progress doesn't block the generate call.
+app.post('/api/v1/design/upload', requireAuth, (req, res) => {
+    uploaders.designInput.single('image')(req, res, (err) => {
+        if (err) {
+            console.error('AI design upload error:', err);
+            return res.status(400).json({ error: err.message || 'Upload failed' });
+        }
+        if (!req.file) {
+            return res.status(400).json({ error: 'לא התקבל קובץ. בדקי גודל (מקס 10MB) ופורמט (JPG/PNG/WEBP).' });
+        }
+        res.json({
+            url: req.file.path,           // Cloudinary URL
+            publicId: req.file.filename,  // for cleanup later
+            size: req.file.size,
+            originalName: req.file.originalname
+        });
+    });
+});
+
 // GET /api/v1/design/presets — list the 5 styles for the picker
 app.get('/api/v1/design/presets', requireAuth, async (req, res) => {
     try {

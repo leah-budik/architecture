@@ -93,6 +93,7 @@
             case 'quotes': renderQuotes(); break;
             case 'sections': renderSections(); break;
             case 'footer': renderFooter(); break;
+            case 'ai-studio': window.AIStudio && window.AIStudio.activate(); break;
         }
     };
 
@@ -1319,4 +1320,422 @@
         if (el) el.value = value || '';
     }
 
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AI STUDIO — Sprint 1 MVP
+   Self-contained IIFE on `window.AIStudio` so it can be activated lazily
+   when the user opens the AI Studio section. Talks to /api/v1/design/*.
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function () {
+    const $ = (id) => document.getElementById(id);
+
+    const state = {
+        activated: false,
+        presets: [],
+        image: null,            // { url, publicId, size, name }
+        selectedPreset: null,   // slug
+        currentJob: null,       // { jobId }
+        polling: null,
+        history: []
+    };
+
+    /* ---------- API helpers ---------- */
+    async function api(path, opts) {
+        const res = await fetch(path, Object.assign({
+            headers: { 'Accept': 'application/json' }
+        }, opts || {}));
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        return data;
+    }
+
+    /* ---------- Render: presets ---------- */
+    async function loadPresets() {
+        try {
+            const presets = await api('/api/v1/design/presets');
+            state.presets = presets;
+            renderPresets();
+        } catch (e) {
+            const wrap = $('ai-presets');
+            if (wrap) wrap.innerHTML = `<div class="ai-presets__placeholder">שגיאת טעינת סגנונות — ${escapeHTML(e.message)}</div>`;
+        }
+    }
+
+    function renderPresets() {
+        const wrap = $('ai-presets');
+        if (!wrap) return;
+        if (!state.presets.length) {
+            wrap.innerHTML = '<div class="ai-presets__placeholder">אין סגנונות פעילים</div>';
+            return;
+        }
+        wrap.innerHTML = state.presets.map(p => `
+            <button type="button" class="ai-preset${state.selectedPreset === p.id ? ' is-active' : ''}" data-preset="${escapeAttr(p.id)}">
+                <div class="ai-preset__swatch">
+                    ${p.thumbnailUrl ? `<img src="${escapeAttr(p.thumbnailUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">` : ''}
+                </div>
+                <div class="ai-preset__check">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="ai-preset__name">${escapeHTML(p.displayName)}</div>
+                <div class="ai-preset__desc">${escapeHTML(p.description || '')}</div>
+            </button>
+        `).join('');
+        wrap.querySelectorAll('.ai-preset').forEach(el => {
+            el.addEventListener('click', () => {
+                state.selectedPreset = el.dataset.preset;
+                renderPresets();
+                updateGenerateButton();
+            });
+        });
+    }
+
+    /* ---------- Render: dropzone ---------- */
+    function applyImage(payload) {
+        state.image = payload;
+        const dz = $('ai-dropzone');
+        const img = $('ai-dropzone-preview');
+        const meta = $('ai-source-meta');
+        if (!dz || !img) return;
+        dz.classList.add('has-image');
+        img.src = payload.url;
+        if (meta) {
+            meta.hidden = false;
+            $('ai-source-name').textContent = payload.name || 'תמונה';
+            $('ai-source-size').textContent = payload.size ? `${(payload.size / 1024 / 1024).toFixed(2)} MB` : '';
+        }
+        updateGenerateButton();
+    }
+
+    function clearImage() {
+        state.image = null;
+        const dz = $('ai-dropzone');
+        const img = $('ai-dropzone-preview');
+        const meta = $('ai-source-meta');
+        if (dz) dz.classList.remove('has-image');
+        if (img) img.src = '';
+        if (meta) meta.hidden = true;
+        updateGenerateButton();
+    }
+
+    async function uploadFile(file) {
+        if (!file) return;
+        if (file.size > 10 * 1024 * 1024) {
+            showToast('error', `הקובץ גדול מדי (${(file.size / 1024 / 1024).toFixed(1)}MB). מקסימום 10MB.`);
+            return;
+        }
+        showLoading();
+        try {
+            const form = new FormData();
+            form.append('image', file);
+            const res = await fetch('/api/v1/design/upload', { method: 'POST', body: form });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+            applyImage({
+                url: data.url,
+                publicId: data.publicId,
+                size: data.size,
+                name: data.originalName || file.name
+            });
+        } catch (e) {
+            showToast('error', e.message || 'שגיאת העלאה');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    /* ---------- Generate button gating ---------- */
+    function updateGenerateButton() {
+        const btn = $('ai-generate');
+        const hint = $('ai-generate-hint');
+        if (!btn) return;
+        const ready = state.image && state.selectedPreset && !state.currentJob;
+        btn.disabled = !ready;
+        if (hint) {
+            if (!state.image && !state.selectedPreset) hint.textContent = 'העלי תמונה ובחרי סגנון להתחיל';
+            else if (!state.image) hint.textContent = 'העלי תמונת חדר להתחיל';
+            else if (!state.selectedPreset) hint.textContent = 'בחרי סגנון להתחיל';
+            else hint.textContent = 'הכל מוכן — לחצי "צרי הדמיה"';
+        }
+    }
+
+    /* ---------- Generate flow ---------- */
+    async function startGenerate() {
+        if (!state.image || !state.selectedPreset) return;
+        try {
+            const data = await api('/api/v1/design/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    imageUrl: state.image.url,
+                    presetId: state.selectedPreset,
+                    customAddition: ($('ai-custom') && $('ai-custom').value) || ''
+                })
+            });
+            state.currentJob = { jobId: data.jobId };
+            showResultPanel('running');
+            startPolling(data.jobId);
+            updateGenerateButton();
+        } catch (e) {
+            showToast('error', e.message || 'נכשל בהתחלת היצירה');
+            state.currentJob = null;
+            updateGenerateButton();
+        }
+    }
+
+    function startPolling(jobId) {
+        stopPolling();
+        let elapsed = 0;
+        const tick = async () => {
+            try {
+                const job = await api(`/api/v1/design/jobs/${encodeURIComponent(jobId)}`);
+                elapsed += 2;
+                updateProgress(job, elapsed);
+                if (job.status === 'done') {
+                    stopPolling();
+                    showResult(job);
+                    state.currentJob = null;
+                    updateGenerateButton();
+                    loadHistory();
+                } else if (job.status === 'failed') {
+                    stopPolling();
+                    showError(job.error || 'היצירה נכשלה');
+                    state.currentJob = null;
+                    updateGenerateButton();
+                    loadHistory();
+                }
+            } catch (e) {
+                console.warn('Polling error (will retry):', e);
+            }
+        };
+        tick();
+        state.polling = setInterval(tick, 2000);
+    }
+
+    function stopPolling() {
+        if (state.polling) { clearInterval(state.polling); state.polling = null; }
+    }
+
+    /* ---------- Result panel ---------- */
+    function showResultPanel(mode) {
+        const card = $('ai-result-card');
+        const progress = $('ai-progress');
+        const result = $('ai-result');
+        const err = $('ai-error');
+        if (!card) return;
+        card.hidden = false;
+        progress.hidden = mode !== 'running';
+        result.hidden = mode !== 'done';
+        err.hidden = mode !== 'failed';
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function updateProgress(job, elapsed) {
+        // No real % from Replicate, so estimate from elapsed time
+        // (adirik/interior-design averages 20-30s).
+        const est = Math.min(95, Math.round((elapsed / 28) * 100));
+        const pct = $('ai-progress-pct');
+        const fill = $('ai-progress-fill');
+        const meta = $('ai-progress-meta');
+        if (pct) pct.textContent = est + '%';
+        if (fill) fill.style.width = est + '%';
+        if (meta) {
+            const presetName = (state.presets.find(p => p.id === job.presetSlug) || {}).displayName || job.presetSlug;
+            meta.textContent = `סגנון: ${presetName} · ${elapsed}s`;
+        }
+    }
+
+    function showResult(job) {
+        showResultPanel('done');
+        $('ai-result-title').textContent = 'ההדמיה מוכנה';
+        const before = $('ai-ba-before');
+        const after = $('ai-ba-after');
+        if (before) before.style.backgroundImage = `url("${job.inputImageUrl}")`;
+        if (after)  after.style.backgroundImage  = `url("${job.resultImageUrl}")`;
+        const dl = $('ai-download');
+        if (dl) dl.href = job.resultImageUrl;
+        bindSlider();
+        // Set progress to 100% briefly for visual closure
+        const fill = $('ai-progress-fill');
+        const pct = $('ai-progress-pct');
+        if (fill) fill.style.width = '100%';
+        if (pct) pct.textContent = '100%';
+    }
+
+    function showError(message) {
+        showResultPanel('failed');
+        const t = $('ai-error-text');
+        if (t) t.textContent = message;
+    }
+
+    function resetResult() {
+        const card = $('ai-result-card');
+        if (card) card.hidden = true;
+        const fill = $('ai-progress-fill');
+        if (fill) fill.style.width = '0%';
+        const pct = $('ai-progress-pct');
+        if (pct) pct.textContent = '0%';
+    }
+
+    /* ---------- Before/After slider ---------- */
+    function bindSlider() {
+        const ba = $('ai-ba');
+        if (!ba || ba._bound) return;
+        ba._bound = true;
+        let dragging = false;
+        const move = (clientX) => {
+            const rect = ba.getBoundingClientRect();
+            // In RTL the visual right edge is at rect.right; we want %-from-the-end-RTL
+            const p = ((rect.right - clientX) / rect.width) * 100;
+            const clamped = Math.max(2, Math.min(98, p));
+            ba.style.setProperty('--ai-split', clamped + '%');
+        };
+        ba.addEventListener('mousedown', (e) => { dragging = true; move(e.clientX); });
+        ba.addEventListener('touchstart', (e) => { dragging = true; move(e.touches[0].clientX); }, { passive: true });
+        window.addEventListener('mousemove', (e) => { if (dragging) move(e.clientX); });
+        window.addEventListener('touchmove', (e) => { if (dragging) move(e.touches[0].clientX); }, { passive: true });
+        window.addEventListener('mouseup', () => { dragging = false; });
+        window.addEventListener('touchend', () => { dragging = false; });
+    }
+
+    /* ---------- History ---------- */
+    async function loadHistory() {
+        try {
+            const data = await api('/api/v1/design/jobs?limit=12');
+            renderHistory(data.items || []);
+        } catch (e) {
+            const wrap = $('ai-history');
+            if (wrap) wrap.innerHTML = `<div class="ai-history__empty">שגיאת טעינה — ${escapeHTML(e.message)}</div>`;
+        }
+    }
+
+    function renderHistory(items) {
+        const wrap = $('ai-history');
+        if (!wrap) return;
+        if (!items.length) {
+            wrap.innerHTML = '<div class="ai-history__empty">עוד לא יצרת הדמיות</div>';
+            return;
+        }
+        wrap.innerHTML = items.map(j => {
+            const thumb = j.resultImageUrl || j.inputImageUrl;
+            const presetName = (state.presets.find(p => p.id === j.presetSlug) || {}).displayName || j.presetSlug || '';
+            const date = j.createdAt ? new Date(j.createdAt).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' }) : '';
+            const statusLabel = { done: '', running: 'בעבודה', queued: 'בהמתנה', failed: 'נכשל' }[j.status] || j.status;
+            const statusClass = j.status === 'failed' ? 'is-failed' : (j.status === 'running' || j.status === 'queued' ? 'is-running' : '');
+            return `
+                <div class="ai-history__item" data-job="${escapeAttr(j.jobId)}">
+                    <div class="ai-history__thumb" style="background-image: url('${escapeAttr(thumb || '')}')"></div>
+                    ${statusLabel ? `<span class="ai-history__status ${statusClass}">${escapeHTML(statusLabel)}</span>` : ''}
+                    <div class="ai-history__meta">
+                        <span class="ai-history__style">${escapeHTML(presetName)}</span>
+                        <span class="ai-history__date">${escapeHTML(date)}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        wrap.querySelectorAll('.ai-history__item').forEach(el => {
+            el.addEventListener('click', async () => {
+                const jobId = el.dataset.job;
+                try {
+                    const j = await api(`/api/v1/design/jobs/${encodeURIComponent(jobId)}`);
+                    if (j.status === 'done') showResult(j);
+                    else if (j.status === 'failed') showError(j.error || 'נכשל');
+                    else {
+                        showResultPanel('running');
+                        state.currentJob = { jobId: j.jobId };
+                        startPolling(j.jobId);
+                    }
+                } catch (e) {
+                    showToast('error', e.message || 'שגיאה בטעינת ההדמיה');
+                }
+            });
+        });
+    }
+
+    /* ---------- Wire up handlers (once) ---------- */
+    function wire() {
+        const dz = $('ai-dropzone');
+        const fileInput = $('ai-file-input');
+
+        // Dropzone click → file picker
+        if (dz && fileInput) {
+            dz.addEventListener('click', (e) => {
+                if (e.target.closest('.ai-dropzone__remove')) return;
+                if (state.image) return;  // don't reopen picker when image is already there
+                fileInput.click();
+            });
+            dz.addEventListener('keydown', (e) => {
+                if ((e.key === 'Enter' || e.key === ' ') && !state.image) {
+                    e.preventDefault();
+                    fileInput.click();
+                }
+            });
+            ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, (e) => {
+                e.preventDefault(); dz.classList.add('is-dragover');
+            }));
+            ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, () => {
+                dz.classList.remove('is-dragover');
+            }));
+            dz.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+                if (f) uploadFile(f);
+            });
+            fileInput.addEventListener('change', () => {
+                const f = fileInput.files && fileInput.files[0];
+                if (f) uploadFile(f);
+                fileInput.value = '';
+            });
+        }
+
+        const rm = $('ai-dropzone-remove');
+        if (rm) rm.addEventListener('click', (e) => { e.stopPropagation(); clearImage(); });
+
+        // Custom prompt counter
+        const ta = $('ai-custom');
+        if (ta) ta.addEventListener('input', () => {
+            const c = $('ai-counter');
+            if (c) c.textContent = String(ta.value.length);
+        });
+
+        // Generate button
+        const gen = $('ai-generate');
+        if (gen) gen.addEventListener('click', startGenerate);
+
+        // Result actions
+        const again = $('ai-again');
+        if (again) again.addEventListener('click', () => { resetResult(); startGenerate(); });
+        const reset = $('ai-reset');
+        if (reset) reset.addEventListener('click', () => { resetResult(); clearImage(); state.selectedPreset = null; renderPresets(); updateGenerateButton(); });
+        const retry = $('ai-error-retry');
+        if (retry) retry.addEventListener('click', startGenerate);
+
+        // History refresh
+        const refresh = $('ai-history-refresh');
+        if (refresh) refresh.addEventListener('click', loadHistory);
+    }
+
+    /* ---------- HTML escape helpers (local) ---------- */
+    function escapeHTML(s) {
+        return (s == null ? '' : String(s))
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function escapeAttr(s) { return escapeHTML(s); }
+
+    /* ---------- Public activation hook ---------- */
+    window.AIStudio = {
+        activate() {
+            if (state.activated) {
+                // Already initialized; just refresh history in case of background changes.
+                loadHistory();
+                return;
+            }
+            state.activated = true;
+            wire();
+            loadPresets();
+            loadHistory();
+            updateGenerateButton();
+        }
+    };
 })();
