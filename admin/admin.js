@@ -1622,7 +1622,8 @@
 
     function updateProgress(elapsedSec) {
         const r = getRefs();
-        const pct = Math.min(95, Math.round((elapsedSec / 28) * 100));
+        // Two-stage pipeline (Flux Kontext + Clarity upscale) averages ~45s end-to-end.
+        const pct = Math.min(95, Math.round((elapsedSec / 45) * 100));
         r.pct.textContent = pct;
         r.pbar.style.width = pct + '%';
     }

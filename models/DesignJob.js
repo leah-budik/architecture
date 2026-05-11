@@ -45,11 +45,25 @@ const DesignJobSchema = new mongoose.Schema({
     customAddition: { type: String, default: '' },
     referenceLine: { type: ReferenceLineSchema, default: null },
 
-    // Replicate tracking
-    predictionId: { type: String, index: true },  // Replicate's internal ID
+    // Replicate tracking — Stage 1 (Flux Kontext generation)
+    predictionId: { type: String, index: true },  // Replicate's internal ID for Stage 1
     promptUsed: { type: String },  // for debugging / showing the user what we built
 
-    // State machine
+    // Replicate tracking — Stage 2 (Clarity upscaler)
+    upscalePredictionId: { type: String, index: true },
+
+    // Two-stage pipeline progress marker. See config/replicate.js.
+    //   'generating' — Stage 1 (Flux Kontext Max) in flight
+    //   'upscaling'  — Stage 2 (Clarity upscaler) in flight
+    //   'done'       — both stages complete (or fallback to Stage 1 result)
+    stage: {
+        type: String,
+        enum: ['generating', 'upscaling', 'done'],
+        default: 'generating',
+        index: true
+    },
+
+    // State machine (overall job)
     status: {
         type: String,
         enum: ['queued', 'running', 'done', 'failed', 'cancelled'],
@@ -59,7 +73,12 @@ const DesignJobSchema = new mongoose.Schema({
     progress: { type: Number, default: 0 },  // 0-100, optional rough estimate
     error: { type: String, default: '' },
 
-    // Result
+    // Intermediate result (Stage 1 output, before upscaling). Kept so that
+    // if Stage 2 fails we can still surface the Flux Kontext render rather
+    // than failing the whole job — Flux output alone is already magazine-grade.
+    intermediateImageUrl: { type: String, default: '' },
+
+    // Final result (Stage 2 output, or fallback to intermediate)
     resultImageUrl: { type: String, default: '' },
     resultImagePublicId: { type: String },
 
@@ -96,9 +115,11 @@ DesignJobSchema.methods.toClientJSON = function () {
     return {
         jobId: this.jobId,
         status: this.status,
+        stage: this.stage,
         progress: this.progress,
         presetSlug: this.presetSlug,
         inputImageUrl: this.inputImageUrl,
+        intermediateImageUrl: this.intermediateImageUrl,
         resultImageUrl: this.resultImageUrl,
         customAddition: this.customAddition,
         referenceLine: this.referenceLine,
