@@ -13,10 +13,13 @@ const path = require('path');
 // Database and Storage
 const { connectDB } = require('./config/database');
 const { uploaders, deleteImage, deleteImages, createUploader } = require('./config/cloudinary');
+const replicateService = require('./config/replicate');
 
 // Models
 const SiteContent = require('./models/SiteContent');
 const Gallery = require('./models/Gallery');
+const DesignJob = require('./models/DesignJob');
+const StylePreset = require('./models/StylePreset');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -629,6 +632,217 @@ app.delete('/api/logo/:type', requireAuth, async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
+// AI DESIGN STUDIO — Sprint 1 MVP (admin-only for now)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Public base URL for webhook callbacks. Required in production so Replicate
+ * can call us back when a prediction completes. In local dev where Replicate
+ * can't reach us, we fall back to client-side polling of /jobs/:jobId.
+ */
+function getPublicBaseUrl(req) {
+    if (process.env.PUBLIC_BASE_URL) return process.env.PUBLIC_BASE_URL;
+    if (process.env.RENDER_EXTERNAL_URL) return process.env.RENDER_EXTERNAL_URL;
+    // Only trust the Host header in production behind our trusted proxy
+    if (process.env.NODE_ENV === 'production' && req) {
+        return `${req.protocol}://${req.get('host')}`;
+    }
+    return null; // local dev: no webhook, frontend will poll Replicate via us
+}
+
+// GET /api/v1/design/presets — list the 5 styles for the picker
+app.get('/api/v1/design/presets', requireAuth, async (req, res) => {
+    try {
+        const presets = await StylePreset.find({ tenantSlug: 'leahbudik', isActive: true })
+            .sort({ order: 1 });
+        res.json(presets.map(p => p.toClientJSON()));
+    } catch (error) {
+        console.error('Error listing presets:', error);
+        res.status(500).json({ error: 'Failed to list presets' });
+    }
+});
+
+// POST /api/v1/design/generate — kick off a new generation
+app.post('/api/v1/design/generate', requireAuth, async (req, res) => {
+    try {
+        const { imageUrl, presetId, customAddition, referenceLine } = req.body || {};
+
+        if (!imageUrl || typeof imageUrl !== 'string') {
+            return res.status(400).json({ error: 'imageUrl is required' });
+        }
+        if (!presetId || typeof presetId !== 'string') {
+            return res.status(400).json({ error: 'presetId is required' });
+        }
+
+        // Look up the preset (validates the choice + gives us the prompt/CN settings)
+        const preset = await StylePreset.findOne({
+            tenantSlug: 'leahbudik',
+            slug: presetId,
+            isActive: true
+        });
+        if (!preset) {
+            return res.status(404).json({ error: `Preset '${presetId}' not found` });
+        }
+
+        // Create the job record FIRST so we have a paper trail even if Replicate errors
+        const jobId = DesignJob.newJobId();
+        const job = await DesignJob.create({
+            jobId,
+            tenantSlug: 'leahbudik',
+            inputImageUrl: imageUrl,
+            presetSlug: presetId,
+            customAddition: customAddition || '',
+            referenceLine: referenceLine || null,
+            status: 'queued'
+        });
+
+        // Fire the prediction. If this throws, the job stays in 'queued' and the
+        // admin can retry / debug from the history view.
+        try {
+            const baseUrl = getPublicBaseUrl(req);
+            const result = await replicateService.startGeneration({
+                inputImageUrl: imageUrl,
+                preset,
+                customAddition,
+                baseUrl
+            });
+
+            job.predictionId = result.predictionId;
+            job.promptUsed = result.prompt;
+            job.status = 'running';
+            job.startedAt = new Date();
+            await job.save();
+        } catch (replicateErr) {
+            console.error('Replicate startGeneration failed:', replicateErr);
+            job.status = 'failed';
+            job.error = replicateErr.message || 'Replicate API error';
+            job.completedAt = new Date();
+            await job.save();
+            return res.status(502).json({
+                jobId: job.jobId,
+                error: 'Failed to start generation: ' + (replicateErr.message || 'unknown')
+            });
+        }
+
+        res.json({
+            jobId: job.jobId,
+            status: job.status,
+            estimatedSeconds: 25  // rough; Replicate's adirik/interior-design averages 15-30s
+        });
+    } catch (error) {
+        console.error('Error in /generate:', error);
+        res.status(500).json({ error: 'Internal error' });
+    }
+});
+
+// GET /api/v1/design/jobs/:jobId — poll job status
+app.get('/api/v1/design/jobs/:jobId', requireAuth, async (req, res) => {
+    try {
+        const job = await DesignJob.findOne({ jobId: req.params.jobId });
+        if (!job) return res.status(404).json({ error: 'Job not found' });
+
+        // If we're still 'running' but the webhook may not have reached us
+        // (local dev, or webhook dropped), do an on-demand status check.
+        if (job.status === 'running' && job.predictionId) {
+            const stale = !job.completedAt && (Date.now() - job.startedAt.getTime()) > 8000;
+            if (stale) {
+                try {
+                    const pred = await replicateService.getPredictionStatus(job.predictionId);
+                    await applyPredictionResult(job, pred);
+                } catch (e) {
+                    // Non-fatal: we'll try again on next poll
+                    console.warn('Background status check failed:', e.message);
+                }
+            }
+        }
+
+        res.json(job.toClientJSON());
+    } catch (error) {
+        console.error('Error in /jobs/:jobId:', error);
+        res.status(500).json({ error: 'Internal error' });
+    }
+});
+
+// GET /api/v1/design/jobs — admin history list, newest first, paginated
+app.get('/api/v1/design/jobs', requireAuth, async (req, res) => {
+    try {
+        const limit = Math.min(parseInt(req.query.limit, 10) || 20, 100);
+        const before = req.query.before ? new Date(req.query.before) : null;
+        const q = { tenantSlug: 'leahbudik' };
+        if (before && !isNaN(before)) q.createdAt = { $lt: before };
+
+        const items = await DesignJob.find(q).sort({ createdAt: -1 }).limit(limit);
+        const nextCursor = items.length === limit ? items[items.length - 1].createdAt : null;
+        res.json({
+            items: items.map(j => j.toClientJSON()),
+            nextCursor
+        });
+    } catch (error) {
+        console.error('Error listing jobs:', error);
+        res.status(500).json({ error: 'Internal error' });
+    }
+});
+
+/**
+ * POST /api/v1/design/webhook — Replicate calls us here when a prediction
+ * completes. NOT auth-protected (Replicate doesn't carry our session), but
+ * we identify the job via the predictionId in the body. Signature
+ * verification will be added before public launch.
+ */
+app.post('/api/v1/design/webhook', async (req, res) => {
+    try {
+        const pred = req.body || {};
+        if (!pred.id) return res.status(400).json({ error: 'missing prediction id' });
+
+        const job = await DesignJob.findOne({ predictionId: pred.id });
+        if (!job) {
+            console.warn('Webhook for unknown predictionId:', pred.id);
+            return res.status(200).json({ ok: true });  // ack so Replicate stops retrying
+        }
+
+        await applyPredictionResult(job, pred);
+        res.json({ ok: true });
+    } catch (error) {
+        console.error('Webhook error:', error);
+        res.status(500).json({ error: 'Internal error' });
+    }
+});
+
+/**
+ * Shared logic for translating a Replicate prediction object into our
+ * job record. Called from both the webhook and the on-demand status poll.
+ */
+async function applyPredictionResult(job, pred) {
+    if (!pred || !pred.status) return;
+
+    if (pred.status === 'succeeded') {
+        // Replicate's output for adirik/interior-design is a URL string OR
+        // an array (model-dependent). Normalize to a single URL.
+        const output = Array.isArray(pred.output) ? pred.output[0] : pred.output;
+        if (output && typeof output === 'string') {
+            job.resultImageUrl = output;
+            job.status = 'done';
+            job.completedAt = new Date();
+            // Cost estimation: adirik/interior-design ~$0.02-0.04/run.
+            // Real billing API call can be added later.
+            job.costUsd = 0.03;
+            await job.save();
+        } else {
+            job.status = 'failed';
+            job.error = 'No output URL in successful prediction';
+            job.completedAt = new Date();
+            await job.save();
+        }
+    } else if (pred.status === 'failed' || pred.status === 'canceled') {
+        job.status = 'failed';
+        job.error = pred.error || `Prediction ${pred.status}`;
+        job.completedAt = new Date();
+        await job.save();
+    }
+    // 'starting' | 'processing' — leave as 'running'
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // SERVE PUBLIC PAGES
 // ═══════════════════════════════════════════════════════════════════════════
 app.get('/', (req, res) => {
@@ -729,11 +943,22 @@ app.get('/api/health', (req, res) => {
 // START SERVER
 // ═══════════════════════════════════════════════════════════════════════════
 function connectWithBackgroundRetry() {
-    connectDB().catch((error) => {
-        console.error('Initial MongoDB connection failed, will keep retrying in background:', error.message);
-        const retryDelayMs = 30000;
-        setTimeout(connectWithBackgroundRetry, retryDelayMs);
-    });
+    connectDB()
+        .then(async () => {
+            // Once Mongo is up, seed any missing style presets. Idempotent — safe
+            // to run on every successful (re)connection. Failures here aren't
+            // fatal; admin can manage presets manually if needed.
+            try {
+                await StylePreset.seedIfMissing();
+            } catch (e) {
+                console.warn('StylePreset seeder failed (non-fatal):', e.message);
+            }
+        })
+        .catch((error) => {
+            console.error('Initial MongoDB connection failed, will keep retrying in background:', error.message);
+            const retryDelayMs = 30000;
+            setTimeout(connectWithBackgroundRetry, retryDelayMs);
+        });
 }
 
 function startServer() {
