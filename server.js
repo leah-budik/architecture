@@ -44,7 +44,15 @@ app.use(helmet({
             // The admin panel uses lots of inline event handlers (onclick="...").
             // helmet's default sets script-src-attr 'none' which would block them.
             scriptSrcAttr: ["'unsafe-inline'"],
-            imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com", "https://*.cloudinary.com"],
+            imgSrc: [
+                "'self'", "data:", "blob:",
+                "https://res.cloudinary.com", "https://*.cloudinary.com",
+                // Replicate serves generated images from these CDN hosts.
+                // Without these the AI Studio's result panel renders blank
+                // even though the job succeeded.
+                "https://replicate.delivery", "https://*.replicate.delivery",
+                "https://pbxt.replicate.delivery"
+            ],
             connectSrc: ["'self'"],
             frameAncestors: ["'none'"], // can't be embedded in <iframe> elsewhere
             objectSrc: ["'none'"],
