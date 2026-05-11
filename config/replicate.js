@@ -41,25 +41,26 @@ const Replicate = require('replicate');
 // ─────────────────────────────────────────────────────────────────────
 
 const ARCHITECTURAL_LOCK =
-    'Transform the interior of this exact room. Preserve completely the original ' +
-    'walls, windows, doors, ceiling shape and floor plan visible in the input ' +
-    'photograph — do not add, remove, or relocate any architectural element. ' +
-    'Only change the materials, finishes, furniture, lighting fixtures, ' +
-    'decoration and color treatment of the space.';
+    'Transform this interior. Keep the architecture exactly as in the ' +
+    'photograph — all walls, windows, doors, ceiling shape, floor outline ' +
+    'and room dimensions stay in their current positions. Also keep any ' +
+    'major built-in appliance or fixture (fridge, oven, gas stove, ' +
+    'microwave, sink, bathroom toilet, shower base) in its current location. ' +
+    'Replace every other surface and object: cabinets, shelving, countertops, ' +
+    'backsplashes, flooring finish, wall paint, ceiling treatment, lighting ' +
+    'fixtures, furniture, soft furnishings, fabrics, hardware and decoration.';
 
 const QUALITY_LAYER =
-    'Editorial architectural photography for Architectural Digest, shot on a ' +
-    'medium-format Hasselblad H6D with a 35mm lens at f/4, late-afternoon ' +
-    'golden-hour daylight pouring through the windows with soft natural ' +
-    'diffusion, true-to-life premium materials, ultra-detailed micro-textures, ' +
-    'subtle ambient occlusion, calm restrained lived-in luxury, magazine ' +
-    'spread composition.';
+    'Photograph in bright airy natural daylight pouring through the windows, ' +
+    'soft window shadows, daytime atmosphere, uncluttered editorial ' +
+    'composition, true-to-life premium materials, ultra-sharp micro-detail, ' +
+    'Architectural Digest magazine quality.';
 
 const NEGATIVE_GUIDANCE =
-    'Avoid: cluttered staging, oversaturated colors, fake CGI plastic look, ' +
-    'harsh artificial shadows, instagram filter aesthetic, garish neon ' +
-    'lighting, cartoonish rendering, watermarks, visible text, distorted ' +
-    'perspective, melted geometry, low-resolution textures.';
+    'dim or evening light, warm orange golden-hour tones, harsh artificial ' +
+    'shadows, fake CGI plastic surfaces, oversaturated colors, cluttered ' +
+    'staging, instagram filter look, distorted perspective, melted geometry, ' +
+    'low-resolution textures, watermarks, visible text.';
 
 // ─────────────────────────────────────────────────────────────────────
 // Model identifiers
@@ -97,15 +98,17 @@ function buildPrompt(preset, customAddition) {
     const negative = negativeOverride || NEGATIVE_GUIDANCE;
     const userCustom = (customAddition || '').trim();
 
-    const parts = [
+    // Labeled sections separated by blank lines. Flux Kontext reads this
+    // structure as distinct directives rather than one run-on sentence.
+    const sections = [
         ARCHITECTURAL_LOCK,
-        styleLayer,
-        userCustom ? `Additional client direction: ${userCustom}.` : '',
-        quality,
-        negative
+        `STYLE — apply this exact aesthetic to all replaced surfaces and objects:\n${styleLayer}`,
+        userCustom ? `CLIENT DIRECTION: ${userCustom}.` : '',
+        `LIGHT & CAMERA: ${quality}`,
+        `AVOID: ${negative}`
     ].filter(Boolean);
 
-    return { prompt: parts.join(' ') };
+    return { prompt: sections.join('\n\n') };
 }
 
 /**
