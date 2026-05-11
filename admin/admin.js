@@ -1323,21 +1323,25 @@
 })();
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   AI STUDIO — Sprint 1 MVP
-   Self-contained IIFE on `window.AIStudio` so it can be activated lazily
-   when the user opens the AI Studio section. Talks to /api/v1/design/*.
+   AI STUDIO — Sprint 1 MVP (rewritten for Claude Design pill layout)
+   Wires the ChatGPT-style pill prompt + tools + archive drawer + modal to the
+   real /api/v1/design/* endpoints. Self-contained on window.AIStudio so the
+   main admin IIFE state isn't touched.
    ═══════════════════════════════════════════════════════════════════════════ */
 (function () {
     const $ = (id) => document.getElementById(id);
 
     const state = {
         activated: false,
-        presets: [],
         image: null,            // { url, publicId, size, name }
+        presets: [],            // [{id, displayName, description, ...}]
         selectedPreset: null,   // slug
+        prompt: '',
+        filter: 'all',
         currentJob: null,       // { jobId }
         polling: null,
-        history: []
+        history: [],
+        historyTotal: 0
     };
 
     /* ---------- API helpers ---------- */
@@ -1350,81 +1354,179 @@
         return data;
     }
 
-    /* ---------- Render: presets ---------- */
-    async function loadPresets() {
-        try {
-            const presets = await api('/api/v1/design/presets');
-            state.presets = presets;
-            renderPresets();
-        } catch (e) {
-            const wrap = $('ai-presets');
-            if (wrap) wrap.innerHTML = `<div class="ai-presets__placeholder">שגיאת טעינת סגנונות — ${escapeHTML(e.message)}</div>`;
+    function escapeHTML(s) {
+        return (s == null ? '' : String(s))
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function escapeAttr(s) { return escapeHTML(s); }
+
+    /* ---------- Toast (reuse main admin's if available) ---------- */
+    function toast(type, msg) {
+        if (typeof window.showToast === 'function') {
+            window.showToast(type, msg);
+        } else {
+            console[type === 'error' ? 'error' : 'log']('AI Studio:', msg);
         }
     }
 
-    function renderPresets() {
-        const wrap = $('ai-presets');
-        if (!wrap) return;
+    /* ---------- DOM refs ---------- */
+    let refs = null;
+    function getRefs() {
+        if (refs) return refs;
+        refs = {
+            pill: $('ai-pill'),
+            promptEl: $('ai-prompt'),
+            sendBtn: $('ai-send'),
+            imageBtn: $('ai-image-btn'),
+            fileInput: $('ai-file-input'),
+            imgChip: $('ai-img-chip'),
+            imgChipTh: $('ai-img-chip-th'),
+            imgChipName: $('ai-img-chip-name'),
+            imgChipX: $('ai-img-chip-x'),
+            styleTool: $('ai-style-tool'),
+            stylePopover: $('ai-style-popover'),
+            styleSwatch: $('ai-style-swatch'),
+            styleLabel: $('ai-style-label'),
+            styleOptions: $('ai-style-options'),
+            quickRow: $('ai-quick-row'),
+            archiveBtn: $('ai-archive-btn'),
+            archiveCount: $('ai-archive-count'),
+            archiveCountTop: $('ai-studio-count'),
+            recent: $('ai-recent'),
+            recentClose: $('ai-recent-close'),
+            recentGrid: $('ai-recent-grid'),
+            recentFilters: $('ai-recent-filters'),
+            processingBar: $('ai-processing-bar'),
+            pbar: $('ai-pbar'),
+            pct: $('ai-pct'),
+            cancelBtn: $('ai-cancel-btn'),
+            modal: $('ai-modal'),
+            modalBody: $('ai-modal-body'),
+            modalTitle: $('ai-modal-title'),
+            modalMeta: $('ai-modal-meta'),
+            modalClose: $('ai-modal-close'),
+            modalAgain: $('ai-modal-again'),
+            modalDownload: $('ai-modal-download'),
+        };
+        return refs;
+    }
+
+    /* ---------- Presets ---------- */
+    async function loadPresets() {
+        try {
+            const presets = await api('/api/v1/design/presets');
+            state.presets = presets || [];
+            renderStyleOptions();
+            renderRecentFilters();
+        } catch (e) {
+            getRefs().styleOptions.innerHTML = `<div class="ai-popover__placeholder">שגיאת טעינה — ${escapeHTML(e.message)}</div>`;
+        }
+    }
+
+    function renderStyleOptions() {
+        const r = getRefs();
+        if (!r.styleOptions) return;
         if (!state.presets.length) {
-            wrap.innerHTML = '<div class="ai-presets__placeholder">אין סגנונות פעילים</div>';
+            r.styleOptions.innerHTML = '<div class="ai-popover__placeholder">אין סגנונות</div>';
             return;
         }
-        wrap.innerHTML = state.presets.map(p => `
-            <button type="button" class="ai-preset${state.selectedPreset === p.id ? ' is-active' : ''}" data-preset="${escapeAttr(p.id)}">
-                <div class="ai-preset__swatch">
-                    ${p.thumbnailUrl ? `<img src="${escapeAttr(p.thumbnailUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">` : ''}
-                </div>
-                <div class="ai-preset__check">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </div>
-                <div class="ai-preset__name">${escapeHTML(p.displayName)}</div>
-                <div class="ai-preset__desc">${escapeHTML(p.description || '')}</div>
-            </button>
-        `).join('');
-        wrap.querySelectorAll('.ai-preset').forEach(el => {
-            el.addEventListener('click', () => {
-                state.selectedPreset = el.dataset.preset;
-                renderPresets();
-                updateGenerateButton();
+        r.styleOptions.innerHTML = state.presets.map(p => {
+            const isActive = state.selectedPreset === p.id;
+            const swatch = p.thumbnailUrl
+                ? `style='background-image:url("${escapeAttr(p.thumbnailUrl)}")'`
+                : '';
+            return `
+                <button type="button" class="ai-popover__opt${isActive ? ' is-active' : ''}" data-preset="${escapeAttr(p.id)}">
+                    <div class="ai-popover__opt__sw" ${swatch}></div>
+                    <div class="ai-popover__opt__n">${escapeHTML(p.displayName)}</div>
+                    <div class="ai-popover__opt__d">${escapeHTML(p.description || '')}</div>
+                </button>
+            `;
+        }).join('');
+        r.styleOptions.querySelectorAll('.ai-popover__opt').forEach(o => {
+            o.addEventListener('click', (e) => {
+                e.stopPropagation();
+                state.selectedPreset = o.dataset.preset;
+                renderStyleOptions();
+                updateStyleChip();
+                updateSendButton();
+                r.stylePopover.classList.remove('is-open');
             });
         });
     }
 
-    /* ---------- Render: dropzone ---------- */
+    function updateStyleChip() {
+        const r = getRefs();
+        const chosen = state.presets.find(p => p.id === state.selectedPreset);
+        if (chosen) {
+            r.styleTool.classList.add('is-active');
+            r.styleLabel.textContent = chosen.displayName;
+            if (r.styleSwatch) {
+                r.styleSwatch.hidden = false;
+                if (chosen.thumbnailUrl) {
+                    r.styleSwatch.style.backgroundImage = `url("${chosen.thumbnailUrl}")`;
+                } else {
+                    r.styleSwatch.style.background = 'linear-gradient(135deg, #2a221a, #1a1410)';
+                }
+            }
+        } else {
+            r.styleTool.classList.remove('is-active');
+            r.styleLabel.textContent = 'בחרי סגנון';
+            if (r.styleSwatch) {
+                r.styleSwatch.hidden = true;
+                r.styleSwatch.style.backgroundImage = '';
+            }
+        }
+    }
+
+    /* ---------- Image upload ---------- */
     function applyImage(payload) {
         state.image = payload;
-        const dz = $('ai-dropzone');
-        const img = $('ai-dropzone-preview');
-        const meta = $('ai-source-meta');
-        if (!dz || !img) return;
-        dz.classList.add('has-image');
-        img.src = payload.url;
-        if (meta) {
-            meta.hidden = false;
-            $('ai-source-name').textContent = payload.name || 'תמונה';
-            $('ai-source-size').textContent = payload.size ? `${(payload.size / 1024 / 1024).toFixed(2)} MB` : '';
-        }
-        updateGenerateButton();
+        const r = getRefs();
+        r.imgChip.hidden = false;
+        if (payload.url) r.imgChipTh.style.backgroundImage = `url("${payload.url}")`;
+        r.imgChipName.textContent = truncate(payload.name || 'image.jpg', 16);
+        r.imageBtn.classList.add('is-has-image');
+        updateSendButton();
     }
 
     function clearImage() {
         state.image = null;
-        const dz = $('ai-dropzone');
-        const img = $('ai-dropzone-preview');
-        const meta = $('ai-source-meta');
-        if (dz) dz.classList.remove('has-image');
-        if (img) img.src = '';
-        if (meta) meta.hidden = true;
-        updateGenerateButton();
+        const r = getRefs();
+        r.imgChip.hidden = true;
+        r.imgChipTh.style.backgroundImage = '';
+        r.imageBtn.classList.remove('is-has-image');
+        updateSendButton();
+    }
+
+    function truncate(s, n) {
+        if (!s || s.length <= n) return s;
+        const i = s.lastIndexOf('.');
+        if (i > 0 && i > s.length - 6) return s.slice(0, n - (s.length - i)) + '…' + s.slice(i);
+        return s.slice(0, n - 1) + '…';
     }
 
     async function uploadFile(file) {
         if (!file) return;
         if (file.size > 10 * 1024 * 1024) {
-            showToast('error', `הקובץ גדול מדי (${(file.size / 1024 / 1024).toFixed(1)}MB). מקסימום 10MB.`);
+            toast('error', `הקובץ גדול מדי (${(file.size / 1024 / 1024).toFixed(1)}MB). מקסימום 10MB.`);
             return;
         }
-        showLoading();
+        // Show local preview immediately for snappy UX
+        try {
+            const reader = new FileReader();
+            reader.onload = () => applyImage({
+                url: reader.result,           // data: URL, overwritten by Cloudinary on success
+                name: file.name,
+                size: file.size,
+                publicId: null,
+                pending: true
+            });
+            reader.readAsDataURL(file);
+        } catch (e) { /* ignore preview failures */ }
+
+        // Upload to Cloudinary
         try {
             const form = new FormData();
             form.append('image', file);
@@ -1438,30 +1540,31 @@
                 name: data.originalName || file.name
             });
         } catch (e) {
-            showToast('error', e.message || 'שגיאת העלאה');
-        } finally {
-            hideLoading();
+            clearImage();
+            toast('error', e.message || 'שגיאת העלאה');
         }
     }
 
-    /* ---------- Generate button gating ---------- */
-    function updateGenerateButton() {
-        const btn = $('ai-generate');
-        const hint = $('ai-generate-hint');
-        if (!btn) return;
-        const ready = state.image && state.selectedPreset && !state.currentJob;
-        btn.disabled = !ready;
-        if (hint) {
-            if (!state.image && !state.selectedPreset) hint.textContent = 'העלי תמונה ובחרי סגנון להתחיל';
-            else if (!state.image) hint.textContent = 'העלי תמונת חדר להתחיל';
-            else if (!state.selectedPreset) hint.textContent = 'בחרי סגנון להתחיל';
-            else hint.textContent = 'הכל מוכן — לחצי "צרי הדמיה"';
-        }
+    /* ---------- Send button ---------- */
+    function updateSendButton() {
+        const r = getRefs();
+        const ready = state.image && state.image.url && !state.image.pending
+                      && state.selectedPreset && !state.currentJob;
+        r.sendBtn.disabled = !ready;
+        r.sendBtn.classList.toggle('is-armed', ready);
     }
 
-    /* ---------- Generate flow ---------- */
+    /* ---------- Generate ---------- */
     async function startGenerate() {
-        if (!state.image || !state.selectedPreset) return;
+        const r = getRefs();
+        if (!state.image || state.image.pending || !state.selectedPreset) return;
+
+        r.pill.classList.add('is-processing');
+        r.pill.classList.remove('is-focus');
+        r.sendBtn.disabled = true;
+        r.pbar.style.width = '0%';
+        r.pct.textContent = '0';
+
         try {
             const data = await api('/api/v1/design/generate', {
                 method: 'POST',
@@ -1469,40 +1572,41 @@
                 body: JSON.stringify({
                     imageUrl: state.image.url,
                     presetId: state.selectedPreset,
-                    customAddition: ($('ai-custom') && $('ai-custom').value) || ''
+                    customAddition: r.promptEl.value.trim()
                 })
             });
-            state.currentJob = { jobId: data.jobId };
-            showResultPanel('running');
+            state.currentJob = { jobId: data.jobId, startedAt: Date.now() };
             startPolling(data.jobId);
-            updateGenerateButton();
         } catch (e) {
-            showToast('error', e.message || 'נכשל בהתחלת היצירה');
-            state.currentJob = null;
-            updateGenerateButton();
+            cancelGenerate();
+            toast('error', e.message || 'נכשל בהתחלת היצירה');
         }
+    }
+
+    function cancelGenerate() {
+        const r = getRefs();
+        state.currentJob = null;
+        stopPolling();
+        r.pill.classList.remove('is-processing');
+        updateSendButton();
     }
 
     function startPolling(jobId) {
         stopPolling();
-        let elapsed = 0;
+        const startedAt = Date.now();
         const tick = async () => {
             try {
                 const job = await api(`/api/v1/design/jobs/${encodeURIComponent(jobId)}`);
-                elapsed += 2;
-                updateProgress(job, elapsed);
+                const elapsed = (Date.now() - startedAt) / 1000;
+                updateProgress(elapsed);
                 if (job.status === 'done') {
                     stopPolling();
-                    showResult(job);
                     state.currentJob = null;
-                    updateGenerateButton();
-                    loadHistory();
+                    onJobDone(job);
                 } else if (job.status === 'failed') {
                     stopPolling();
-                    showError(job.error || 'היצירה נכשלה');
                     state.currentJob = null;
-                    updateGenerateButton();
-                    loadHistory();
+                    onJobFailed(job);
                 }
             } catch (e) {
                 console.warn('Polling error (will retry):', e);
@@ -1516,79 +1620,89 @@
         if (state.polling) { clearInterval(state.polling); state.polling = null; }
     }
 
-    /* ---------- Result panel ---------- */
-    function showResultPanel(mode) {
-        const card = $('ai-result-card');
-        const progress = $('ai-progress');
-        const result = $('ai-result');
-        const err = $('ai-error');
-        if (!card) return;
-        card.hidden = false;
-        progress.hidden = mode !== 'running';
-        result.hidden = mode !== 'done';
-        err.hidden = mode !== 'failed';
-        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    function updateProgress(elapsedSec) {
+        const r = getRefs();
+        const pct = Math.min(95, Math.round((elapsedSec / 28) * 100));
+        r.pct.textContent = pct;
+        r.pbar.style.width = pct + '%';
     }
 
-    function updateProgress(job, elapsed) {
-        // No real % from Replicate, so estimate from elapsed time
-        // (adirik/interior-design averages 20-30s).
-        const est = Math.min(95, Math.round((elapsed / 28) * 100));
-        const pct = $('ai-progress-pct');
-        const fill = $('ai-progress-fill');
-        const meta = $('ai-progress-meta');
-        if (pct) pct.textContent = est + '%';
-        if (fill) fill.style.width = est + '%';
-        if (meta) {
-            const presetName = (state.presets.find(p => p.id === job.presetSlug) || {}).displayName || job.presetSlug;
-            meta.textContent = `סגנון: ${presetName} · ${elapsed}s`;
-        }
+    function onJobDone(job) {
+        const r = getRefs();
+        r.pct.textContent = '100';
+        r.pbar.style.width = '100%';
+        // Brief pause before flipping to result, then clear pill
+        setTimeout(() => {
+            r.pill.classList.remove('is-processing');
+            r.promptEl.value = '';
+            state.prompt = '';
+            autoSizePrompt();
+            updateSendButton();
+            loadHistory();          // refresh archive count
+            openModalFromJob(job);  // show result in modal
+        }, 600);
     }
 
-    function showResult(job) {
-        showResultPanel('done');
-        $('ai-result-title').textContent = 'ההדמיה מוכנה';
-        const before = $('ai-ba-before');
-        const after = $('ai-ba-after');
-        if (before) before.style.backgroundImage = `url("${job.inputImageUrl}")`;
-        if (after)  after.style.backgroundImage  = `url("${job.resultImageUrl}")`;
-        const dl = $('ai-download');
-        if (dl) dl.href = job.resultImageUrl;
-        bindSlider();
-        // Set progress to 100% briefly for visual closure
-        const fill = $('ai-progress-fill');
-        const pct = $('ai-progress-pct');
-        if (fill) fill.style.width = '100%';
-        if (pct) pct.textContent = '100%';
+    function onJobFailed(job) {
+        const r = getRefs();
+        r.pill.classList.remove('is-processing');
+        updateSendButton();
+        loadHistory();
+        toast('error', job.error || 'היצירה נכשלה — נסי שוב');
     }
 
-    function showError(message) {
-        showResultPanel('failed');
-        const t = $('ai-error-text');
-        if (t) t.textContent = message;
+    /* ---------- Modal ---------- */
+    function openModalFromJob(job) {
+        const r = getRefs();
+        if (!job || !job.resultImageUrl) return;
+        const presetName = (state.presets.find(p => p.id === job.presetSlug) || {}).displayName || job.presetSlug || '';
+        r.modalTitle.innerHTML = `${escapeHTML(presetName)} <em>·</em>`;
+        const date = job.completedAt
+            ? new Date(job.completedAt).toLocaleString('he-IL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+            : '';
+        r.modalMeta.textContent = date;
+        r.modalDownload.href = job.resultImageUrl;
+        r.modalBody.innerHTML = `
+            <div class="ai-ba" id="ai-ba" style="--ai-split: 50%;">
+                <div class="ai-ba__layer ai-ba__layer--before" style='background-image:url("${escapeAttr(job.inputImageUrl || '')}")'></div>
+                <div class="ai-ba__layer ai-ba__layer--after"  style='background-image:url("${escapeAttr(job.resultImageUrl)}")'></div>
+                <span class="ai-ba__tag ai-ba__tag--before">לפני</span>
+                <span class="ai-ba__tag ai-ba__tag--after">אחרי · ${escapeHTML(presetName)}</span>
+                <div class="ai-ba__divider"></div>
+                <div class="ai-ba__handle" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+            </div>
+        `;
+        r.modal.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+        bindBA();
+        r.modalAgain.onclick = () => {
+            closeModal();
+            state.selectedPreset = job.presetSlug;
+            updateStyleChip();
+            // Keep current image if same one; otherwise hint user to upload again
+            // For simplicity here, we just close — user can hit "send" again.
+        };
     }
 
-    function resetResult() {
-        const card = $('ai-result-card');
-        if (card) card.hidden = true;
-        const fill = $('ai-progress-fill');
-        if (fill) fill.style.width = '0%';
-        const pct = $('ai-progress-pct');
-        if (pct) pct.textContent = '0%';
+    function closeModal() {
+        const r = getRefs();
+        r.modal.classList.remove('is-open');
+        document.body.style.overflow = '';
     }
 
-    /* ---------- Before/After slider ---------- */
-    function bindSlider() {
+    /* Before/After slider — RTL-aware drag handle */
+    function bindBA() {
         const ba = $('ai-ba');
-        if (!ba || ba._bound) return;
-        ba._bound = true;
+        if (!ba) return;
         let dragging = false;
         const move = (clientX) => {
             const rect = ba.getBoundingClientRect();
-            // In RTL the visual right edge is at rect.right; we want %-from-the-end-RTL
+            // In RTL, right edge is at rect.right; convert click to %-from-end
             const p = ((rect.right - clientX) / rect.width) * 100;
-            const clamped = Math.max(2, Math.min(98, p));
-            ba.style.setProperty('--ai-split', clamped + '%');
+            const s = Math.max(2, Math.min(98, p));
+            ba.style.setProperty('--ai-split', s + '%');
         };
         ba.addEventListener('mousedown', (e) => { dragging = true; move(e.clientX); });
         ba.addEventListener('touchstart', (e) => { dragging = true; move(e.touches[0].clientX); }, { passive: true });
@@ -1598,144 +1712,191 @@
         window.addEventListener('touchend', () => { dragging = false; });
     }
 
-    /* ---------- History ---------- */
+    /* ---------- History / Archive ---------- */
     async function loadHistory() {
         try {
-            const data = await api('/api/v1/design/jobs?limit=12');
-            renderHistory(data.items || []);
+            const data = await api('/api/v1/design/jobs?limit=24');
+            state.history = data.items || [];
+            state.historyTotal = state.history.length;
+            renderArchive();
+            const r = getRefs();
+            if (r.archiveCount) r.archiveCount.textContent = state.historyTotal;
+            if (r.archiveCountTop) r.archiveCountTop.textContent = state.historyTotal;
         } catch (e) {
-            const wrap = $('ai-history');
-            if (wrap) wrap.innerHTML = `<div class="ai-history__empty">שגיאת טעינה — ${escapeHTML(e.message)}</div>`;
+            getRefs().recentGrid.innerHTML = `<div class="ai-recent__empty">שגיאת טעינה — ${escapeHTML(e.message)}</div>`;
         }
     }
 
-    function renderHistory(items) {
-        const wrap = $('ai-history');
-        if (!wrap) return;
+    function renderRecentFilters() {
+        const r = getRefs();
+        if (!r.recentFilters) return;
+        const chips = ['<button class="ai-recent__chip is-active" data-filter="all" type="button">הכל</button>']
+            .concat(state.presets.map(p =>
+                `<button class="ai-recent__chip" data-filter="${escapeAttr(p.id)}" type="button">${escapeHTML(p.displayName)}</button>`
+            ));
+        r.recentFilters.innerHTML = chips.join('');
+        r.recentFilters.querySelectorAll('.ai-recent__chip').forEach(c => {
+            c.addEventListener('click', () => {
+                state.filter = c.dataset.filter;
+                r.recentFilters.querySelectorAll('.ai-recent__chip').forEach(b => b.classList.toggle('is-active', b === c));
+                renderArchive();
+            });
+        });
+    }
+
+    function renderArchive() {
+        const r = getRefs();
+        if (!r.recentGrid) return;
+        const items = state.filter === 'all'
+            ? state.history
+            : state.history.filter(j => j.presetSlug === state.filter);
         if (!items.length) {
-            wrap.innerHTML = '<div class="ai-history__empty">עוד לא יצרת הדמיות</div>';
+            r.recentGrid.innerHTML = '<div class="ai-recent__empty">עוד לא יצרת הדמיות</div>';
             return;
         }
-        wrap.innerHTML = items.map(j => {
-            const thumb = j.resultImageUrl || j.inputImageUrl;
+        r.recentGrid.innerHTML = items.map(j => {
+            const thumb = j.resultImageUrl || j.inputImageUrl || '';
             const presetName = (state.presets.find(p => p.id === j.presetSlug) || {}).displayName || j.presetSlug || '';
-            const date = j.createdAt ? new Date(j.createdAt).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' }) : '';
-            const statusLabel = { done: '', running: 'בעבודה', queued: 'בהמתנה', failed: 'נכשל' }[j.status] || j.status;
+            const date = j.createdAt
+                ? new Date(j.createdAt).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' })
+                : '';
+            const statusLabel = { running: 'בעבודה', queued: 'בהמתנה', failed: 'נכשל', done: '' }[j.status] || '';
             const statusClass = j.status === 'failed' ? 'is-failed' : (j.status === 'running' || j.status === 'queued' ? 'is-running' : '');
             return `
-                <div class="ai-history__item" data-job="${escapeAttr(j.jobId)}">
-                    <div class="ai-history__thumb" style="background-image: url('${escapeAttr(thumb || '')}')"></div>
-                    ${statusLabel ? `<span class="ai-history__status ${statusClass}">${escapeHTML(statusLabel)}</span>` : ''}
-                    <div class="ai-history__meta">
-                        <span class="ai-history__style">${escapeHTML(presetName)}</span>
-                        <span class="ai-history__date">${escapeHTML(date)}</span>
+                <div class="ai-tile" data-job="${escapeAttr(j.jobId)}">
+                    <div class="ai-tile__thumb">
+                        <div class="ai-tile__thumb-img" style='background-image:url("${escapeAttr(thumb)}")'></div>
+                        ${statusLabel ? `<span class="ai-tile__tag ${statusClass}">${escapeHTML(statusLabel)}</span>` : ''}
+                        <div class="ai-tile__overlay"></div>
+                        <div class="ai-tile__meta">
+                            <span class="ai-tile__style">${escapeHTML(presetName)}</span>
+                            <span class="ai-tile__date">${escapeHTML(date)}</span>
+                        </div>
                     </div>
                 </div>
             `;
         }).join('');
-        wrap.querySelectorAll('.ai-history__item').forEach(el => {
+        r.recentGrid.querySelectorAll('.ai-tile').forEach(el => {
             el.addEventListener('click', async () => {
                 const jobId = el.dataset.job;
                 try {
                     const j = await api(`/api/v1/design/jobs/${encodeURIComponent(jobId)}`);
-                    if (j.status === 'done') showResult(j);
-                    else if (j.status === 'failed') showError(j.error || 'נכשל');
-                    else {
-                        showResultPanel('running');
-                        state.currentJob = { jobId: j.jobId };
-                        startPolling(j.jobId);
-                    }
+                    if (j.status === 'done') openModalFromJob(j);
+                    else if (j.status === 'failed') toast('error', j.error || 'ההדמיה נכשלה');
+                    else toast('info', 'ההדמיה עוד בעבודה — אנא חכי דקה');
                 } catch (e) {
-                    showToast('error', e.message || 'שגיאה בטעינת ההדמיה');
+                    toast('error', e.message || 'שגיאה בטעינת ההדמיה');
                 }
             });
         });
     }
 
-    /* ---------- Wire up handlers (once) ---------- */
+    /* ---------- Wiring (one-time) ---------- */
+    function autoSizePrompt() {
+        const t = getRefs().promptEl;
+        if (!t) return;
+        t.style.height = 'auto';
+        t.style.height = Math.min(160, t.scrollHeight) + 'px';
+    }
+
     function wire() {
-        const dz = $('ai-dropzone');
-        const fileInput = $('ai-file-input');
+        const r = getRefs();
 
-        // Dropzone click → file picker
-        if (dz && fileInput) {
-            dz.addEventListener('click', (e) => {
-                if (e.target.closest('.ai-dropzone__remove')) return;
-                if (state.image) return;  // don't reopen picker when image is already there
-                fileInput.click();
-            });
-            dz.addEventListener('keydown', (e) => {
-                if ((e.key === 'Enter' || e.key === ' ') && !state.image) {
-                    e.preventDefault();
-                    fileInput.click();
-                }
-            });
-            ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, (e) => {
-                e.preventDefault(); dz.classList.add('is-dragover');
-            }));
-            ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, () => {
-                dz.classList.remove('is-dragover');
-            }));
-            dz.addEventListener('drop', (e) => {
+        // Prompt textarea
+        r.promptEl.addEventListener('focus', () => r.pill.classList.add('is-focus'));
+        r.promptEl.addEventListener('blur',  () => r.pill.classList.remove('is-focus'));
+        r.promptEl.addEventListener('input', () => {
+            state.prompt = r.promptEl.value;
+            autoSizePrompt();
+            updateSendButton();
+        });
+        r.promptEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-                if (f) uploadFile(f);
-            });
-            fileInput.addEventListener('change', () => {
-                const f = fileInput.files && fileInput.files[0];
-                if (f) uploadFile(f);
-                fileInput.value = '';
-            });
-        }
-
-        const rm = $('ai-dropzone-remove');
-        if (rm) rm.addEventListener('click', (e) => { e.stopPropagation(); clearImage(); });
-
-        // Custom prompt counter
-        const ta = $('ai-custom');
-        if (ta) ta.addEventListener('input', () => {
-            const c = $('ai-counter');
-            if (c) c.textContent = String(ta.value.length);
+                if (!r.sendBtn.disabled) startGenerate();
+            }
         });
 
-        // Generate button
-        const gen = $('ai-generate');
-        if (gen) gen.addEventListener('click', startGenerate);
+        // Image attach
+        r.imageBtn.addEventListener('click', () => r.fileInput.click());
+        r.fileInput.addEventListener('change', (e) => {
+            const f = e.target.files && e.target.files[0];
+            if (f) uploadFile(f);
+            r.fileInput.value = '';
+        });
+        r.imgChipX.addEventListener('click', (e) => { e.stopPropagation(); clearImage(); });
 
-        // Result actions
-        const again = $('ai-again');
-        if (again) again.addEventListener('click', () => { resetResult(); startGenerate(); });
-        const reset = $('ai-reset');
-        if (reset) reset.addEventListener('click', () => { resetResult(); clearImage(); state.selectedPreset = null; renderPresets(); updateGenerateButton(); });
-        const retry = $('ai-error-retry');
-        if (retry) retry.addEventListener('click', startGenerate);
+        // Drag/drop on the whole pill
+        r.pill.addEventListener('dragover', (e) => { e.preventDefault(); r.pill.classList.add('is-focus'); });
+        r.pill.addEventListener('dragleave', () => r.pill.classList.remove('is-focus'));
+        r.pill.addEventListener('drop', (e) => {
+            e.preventDefault();
+            r.pill.classList.remove('is-focus');
+            const f = e.dataTransfer.files && e.dataTransfer.files[0];
+            if (f) uploadFile(f);
+        });
 
-        // History refresh
-        const refresh = $('ai-history-refresh');
-        if (refresh) refresh.addEventListener('click', loadHistory);
+        // Send & cancel
+        r.sendBtn.addEventListener('click', startGenerate);
+        r.cancelBtn.addEventListener('click', cancelGenerate);
+
+        // Style popover toggle
+        r.styleTool.addEventListener('click', (e) => {
+            if (r.stylePopover.contains(e.target)) return;
+            e.stopPropagation();
+            r.stylePopover.classList.toggle('is-open');
+        });
+        // Close popover when clicking outside it
+        document.addEventListener('click', (e) => {
+            if (!r.stylePopover) return;
+            if (r.stylePopover.classList.contains('is-open') &&
+                !r.styleTool.contains(e.target)) {
+                r.stylePopover.classList.remove('is-open');
+            }
+        });
+
+        // Quick action chips
+        r.quickRow.querySelectorAll('.ai-qa').forEach(q => {
+            q.addEventListener('click', () => {
+                const t = q.dataset.prompt || q.textContent.trim();
+                r.promptEl.value = t;
+                state.prompt = t;
+                autoSizePrompt();
+                updateSendButton();
+                r.promptEl.focus();
+            });
+        });
+
+        // Archive drawer
+        r.archiveBtn.addEventListener('click', () => r.recent.classList.add('is-open'));
+        r.recentClose.addEventListener('click', () => r.recent.classList.remove('is-open'));
+
+        // Modal
+        r.modalClose.addEventListener('click', closeModal);
+        r.modal.addEventListener('click', (e) => { if (e.target === r.modal) closeModal(); });
+
+        // Global keyboard
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            if (r.modal.classList.contains('is-open')) closeModal();
+            else if (r.recent.classList.contains('is-open')) r.recent.classList.remove('is-open');
+            else if (r.stylePopover.classList.contains('is-open')) r.stylePopover.classList.remove('is-open');
+        });
     }
 
-    /* ---------- HTML escape helpers (local) ---------- */
-    function escapeHTML(s) {
-        return (s == null ? '' : String(s))
-            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    }
-    function escapeAttr(s) { return escapeHTML(s); }
-
-    /* ---------- Public activation hook ---------- */
+    /* ---------- Public activation ---------- */
     window.AIStudio = {
         activate() {
             if (state.activated) {
-                // Already initialized; just refresh history in case of background changes.
                 loadHistory();
                 return;
             }
             state.activated = true;
+            getRefs();
             wire();
             loadPresets();
             loadHistory();
-            updateGenerateButton();
+            updateSendButton();
         }
     };
 })();

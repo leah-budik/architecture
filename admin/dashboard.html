@@ -824,149 +824,164 @@
              Talks to /api/v1/design/* endpoints already built in Day 1.
              ═══════════════════════════════════════════════════════════ -->
         <section class="content-section ai-studio" id="section-ai-studio">
-            <div class="section-header">
-                <h1 class="section-title">סטודיו AI <span class="ai-studio__pill">BETA</span></h1>
-                <p class="section-subtitle">העלי תמונת חדר, בחרי סגנון, וקבלי הדמיה אדריכלית בסגנון של לאה תוך 30 שניות</p>
-            </div>
+            <!-- Top utility bar -->
+            <header class="ai-studio__top">
+                <div class="ai-studio__crumbs">סטודיו <b>AI</b> · BETA</div>
+                <div class="ai-studio__spacer"></div>
+                <div class="ai-studio__credits">
+                    <span class="ai-studio__glyph"></span>
+                    <span><b id="ai-studio-count">0</b> הדמיות נוצרו</span>
+                </div>
+            </header>
 
-            <!-- Step 1: Upload + Settings (two-column on desktop) -->
-            <div class="ai-studio__grid">
+            <!-- Hero stage with pill prompt -->
+            <section class="ai-stage">
 
-                <!-- LEFT: Source image -->
-                <div class="card ai-studio__card">
-                    <div class="card__header">
-                        <h2 class="card__title">תמונת מקור</h2>
-                        <span class="ai-studio__step">01 / 03</span>
-                    </div>
-                    <div class="card__body">
-                        <input type="file" id="ai-file-input" accept="image/jpeg,image/jpg,image/png,image/webp" hidden>
+                <div class="ai-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1">
+                        <path d="M12 2v6M12 16v6M2 12h6M16 12h6M4.6 4.6l4.2 4.2M15.2 15.2l4.2 4.2M4.6 19.4l4.2-4.2M15.2 8.8l4.2-4.2"/>
+                        <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/>
+                    </svg>
+                </div>
 
-                        <div class="ai-dropzone" id="ai-dropzone" role="button" tabindex="0" aria-label="העלי תמונת חדר">
-                            <div class="ai-dropzone__empty" id="ai-dropzone-empty">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="40" height="40" aria-hidden="true">
-                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                <div class="ai-eyebrow">
+                    <span>AI · STUDIO</span>
+                    <span class="ai-eyebrow__beta">מוכן כשאת מוכנה</span>
+                </div>
+
+                <h1 class="ai-hero-title">צרי הדמיה ב<em>סגנון שלך</em>.</h1>
+                <p class="ai-hero-sub">העלי תמונת חדר, בחרי סגנון, ותארי את האווירה — תוך 30 שניות תקבלי הדמיה אדריכלית מלאה.</p>
+
+                <!-- Big pill prompt -->
+                <div class="ai-prompt-shell">
+                    <div class="ai-pill" id="ai-pill">
+
+                        <div class="ai-pill__row">
+                            <input id="ai-file-input" type="file" accept="image/jpeg,image/jpg,image/png,image/webp" hidden>
+
+                            <button class="ai-icon-btn" id="ai-image-btn" type="button" title="צרפי תמונת חדר" aria-label="צרפי תמונת חדר">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+                                    <path d="M12 5v14M5 12h14"/>
                                 </svg>
-                                <div class="ai-dropzone__hint">גררי תמונה לכאן או לחצי לבחירה</div>
-                                <div class="ai-dropzone__sub">JPG · PNG · WEBP · עד 10MB</div>
-                            </div>
-                            <img id="ai-dropzone-preview" class="ai-dropzone__preview" alt="">
-                            <button type="button" class="ai-dropzone__remove" id="ai-dropzone-remove" aria-label="הסירי תמונה">×</button>
-                        </div>
-
-                        <div class="ai-source-meta" id="ai-source-meta" hidden>
-                            <span class="ai-source-meta__name" id="ai-source-name"></span>
-                            <span class="ai-source-meta__size" id="ai-source-size"></span>
-                        </div>
-
-                        <div class="ai-tips">
-                            <span class="ai-tips__label">לתוצאה אופטימלית</span>
-                            <ul>
-                                <li>אור טבעי, חדר מסודר, בלי אנשים</li>
-                                <li>צילום ישר (לא מהרצפה / מהתקרה)</li>
-                                <li>החדר ממלא את רוב הפריים</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- RIGHT: Settings -->
-                <div class="card ai-studio__card">
-                    <div class="card__header">
-                        <h2 class="card__title">הגדרות יצירה</h2>
-                        <span class="ai-studio__step">02 / 03</span>
-                    </div>
-                    <div class="card__body">
-
-                        <!-- Style picker -->
-                        <h3 class="form-section-title">בחרי סגנון</h3>
-                        <div class="ai-presets" id="ai-presets" role="radiogroup" aria-label="סגנון">
-                            <div class="ai-presets__placeholder">טוען סגנונות...</div>
-                        </div>
-
-                        <!-- Custom prompt -->
-                        <h3 class="form-section-title">בקשה מיוחדת <span class="form-section-title__hint">(אופציונלי)</span></h3>
-                        <div class="form-group">
-                            <textarea class="form-textarea" id="ai-custom" rows="3" maxlength="200"
-                                placeholder="למשל: 'הילדים אוהבים צבעים בהירים', 'לשמור על אזור משחק'..."></textarea>
-                            <div class="ai-counter"><span id="ai-counter">0</span> / 200</div>
-                        </div>
-
-                        <!-- Generate button -->
-                        <button class="btn btn--primary ai-generate" id="ai-generate" type="button" disabled>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18" aria-hidden="true">
-                                <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.5 5.5l2 2M16.5 16.5l2 2M5.5 18.5l2-2M16.5 7.5l2-2"/>
-                                <circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/>
-                            </svg>
-                            <span>צרי הדמיה</span>
-                        </button>
-                        <p class="ai-generate__hint" id="ai-generate-hint">העלי תמונה ובחרי סגנון להתחיל</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Status / Result panel — hidden until a job is in flight -->
-            <div class="card ai-studio__card" id="ai-result-card" hidden>
-                <div class="card__header">
-                    <h2 class="card__title" id="ai-result-title">ההדמיה בעבודה</h2>
-                    <span class="ai-studio__step" id="ai-result-step">03 / 03</span>
-                </div>
-                <div class="card__body">
-
-                    <!-- Running state -->
-                    <div class="ai-progress" id="ai-progress">
-                        <div class="ai-progress__row">
-                            <span class="ai-progress__label">לאה מציירת עבורך<span class="ai-progress__blink"></span></span>
-                            <span class="ai-progress__pct" id="ai-progress-pct">0%</span>
-                        </div>
-                        <div class="ai-progress__bar"><div class="ai-progress__fill" id="ai-progress-fill"></div></div>
-                        <div class="ai-progress__meta" id="ai-progress-meta">מעבד...</div>
-                    </div>
-
-                    <!-- Done state - before/after slider -->
-                    <div class="ai-result" id="ai-result" hidden>
-                        <div class="ai-ba" id="ai-ba" style="--ai-split: 50%">
-                            <div class="ai-ba__layer ai-ba__before" id="ai-ba-before"></div>
-                            <div class="ai-ba__layer ai-ba__after"  id="ai-ba-after"></div>
-                            <span class="ai-ba__tag ai-ba__tag--before">לפני</span>
-                            <span class="ai-ba__tag ai-ba__tag--after">אחרי</span>
-                            <div class="ai-ba__divider"></div>
-                            <div class="ai-ba__handle" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="16" height="16">
-                                    <path d="M9 6l-4 6 4 6M15 6l4 6-4 6" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="ai-result__actions">
-                            <a class="btn btn--secondary" id="ai-download" download="leah-budik-rendering.jpg" target="_blank" rel="noopener">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
-                                הורדה
-                            </a>
-                            <button class="btn btn--primary" id="ai-again" type="button">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 12a9 9 0 0114-7.5M21 12a9 9 0 01-14 7.5M18 4v4h-4M6 20v-4h4"/></svg>
-                                וריאציה נוספת
                             </button>
-                            <button class="btn btn--secondary" id="ai-reset" type="button">איפוס</button>
+
+                            <span class="ai-img-chip" id="ai-img-chip" hidden>
+                                <span class="ai-img-chip__th" id="ai-img-chip-th"></span>
+                                <span id="ai-img-chip-name">image.jpg</span>
+                                <button class="ai-img-chip__x" id="ai-img-chip-x" type="button" title="הסירי תמונה">×</button>
+                            </span>
+
+                            <textarea id="ai-prompt" rows="1" maxlength="280"
+                                placeholder="תארי את ההדמיה שתרצי..."></textarea>
+
+                            <button class="ai-send" id="ai-send" type="button" disabled aria-label="צרי הדמיה">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                    <path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="ai-processing-bar" id="ai-processing-bar">
+                            <span class="ai-processing-bar__label">לאה מציירת עבורך<span class="ai-blink"></span></span>
+                            <div class="ai-processing-bar__bar"><div id="ai-pbar"></div></div>
+                            <span class="ai-processing-bar__pct"><span id="ai-pct">0</span>%</span>
+                            <button class="ai-processing-bar__cancel" id="ai-cancel-btn" type="button">ביטול</button>
                         </div>
                     </div>
 
-                    <!-- Failed state -->
-                    <div class="ai-error" id="ai-error" hidden>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="32" height="32"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
-                        <div class="ai-error__text" id="ai-error-text">היצירה נכשלה</div>
-                        <button class="btn btn--secondary" id="ai-error-retry" type="button">ניסיון חדש</button>
+                    <!-- Tools row -->
+                    <div class="ai-tools-row">
+                        <button class="ai-tool" id="ai-style-tool" type="button">
+                            <span class="ai-tool__lead">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18"/></svg>
+                            </span>
+                            <span class="ai-tool__swatch" id="ai-style-swatch" hidden></span>
+                            <span id="ai-style-label">בחרי סגנון</span>
+                            <span class="ai-tool__chev">▾</span>
+
+                            <div class="ai-popover" id="ai-style-popover">
+                                <div class="ai-popover__label">סגנונות חתומים</div>
+                                <div class="ai-popover__grid" id="ai-style-options">
+                                    <div class="ai-popover__placeholder">טוען...</div>
+                                </div>
+                            </div>
+                        </button>
+
+                        <button class="ai-tool ai-tool--static" type="button" title="המודל הנוכחי">
+                            <span class="ai-tool__lead" style="color:var(--ai-gold)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l2.6 5.3 5.9.8-4.3 4.1 1 5.8L12 16.3 6.8 19l1-5.8L3.5 9.1l5.9-.8L12 3z"/></svg>
+                            </span>
+                            <span><em>Leah</em> v1</span>
+                        </button>
+                    </div>
+
+                    <!-- Quick action chips -->
+                    <div class="ai-quick-row" id="ai-quick-row">
+                        <button class="ai-qa" type="button" data-prompt="הוסיפי אזור משחק לילדים, שמרי על הספה הקיימת">
+                            <span class="ai-qa__ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 13h18M5 13l1.5-6h11L19 13M5 13v6h3v-2h8v2h3v-6"/></svg></span>
+                            סלון משפחתי חמים
+                        </button>
+                        <button class="ai-qa" type="button" data-prompt="חדר שינה רגוע עם אור צפוני ופלטה נייטרלית">
+                            <span class="ai-qa__ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 18v-2a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v2M2 18h20M6 12V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4"/></svg></span>
+                            חדר שינה שקט
+                        </button>
+                        <button class="ai-qa" type="button" data-prompt="מטבח אבן עם חלון גדול ותאורה טבעית">
+                            <span class="ai-qa__ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 3h16v18H4zM8 3v18M16 3v18M4 12h16"/></svg></span>
+                            מטבח פתוח
+                        </button>
+                        <button class="ai-qa" type="button" data-prompt="פינת אוכל סימטרית עם פרזול פליז ותאורה נסתרת">
+                            <span class="ai-qa__ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="6"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span>
+                            פינת אוכל יוקרתית
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Archive button -->
+            <button class="ai-archive-btn" id="ai-archive-btn" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="18" height="4"/><rect x="5" y="8" width="14" height="12"/><path d="M10 13h4"/></svg>
+                <span>הדמיות אחרונות</span>
+                <span class="ai-archive-btn__count" id="ai-archive-count">0</span>
+            </button>
+
+            <!-- Archive drawer -->
+            <section class="ai-recent" id="ai-recent">
+                <button class="ai-recent__close" id="ai-recent-close" type="button">✕ סגירה</button>
+                <div class="ai-recent__head">
+                    <span class="ai-recent__label">הדמיות אחרונות</span>
+                    <div class="ai-recent__filters" id="ai-recent-filters">
+                        <button class="ai-recent__chip is-active" data-filter="all">הכל</button>
                     </div>
                 </div>
-            </div>
-
-            <!-- History -->
-            <div class="card ai-studio__card">
-                <div class="card__header">
-                    <h2 class="card__title">היסטוריית הדמיות</h2>
-                    <button class="btn btn--small btn--secondary" id="ai-history-refresh" type="button">רענון</button>
+                <div class="ai-recent__grid" id="ai-recent-grid">
+                    <div class="ai-recent__empty">טוען...</div>
                 </div>
-                <div class="card__body">
-                    <div class="ai-history" id="ai-history">
-                        <div class="ai-history__empty">טוען היסטוריה...</div>
+            </section>
+
+            <!-- Focus modal (before/after slider) -->
+            <div class="ai-modal-mask" id="ai-modal">
+                <div class="ai-modal">
+                    <div class="ai-modal__head">
+                        <h3 id="ai-modal-title">ההדמיה <em>מוכנה</em></h3>
+                        <span class="ai-modal__meta" id="ai-modal-meta"></span>
+                        <button class="ai-modal__close" id="ai-modal-close" type="button" aria-label="סגירה">✕</button>
+                    </div>
+                    <div class="ai-modal__body" id="ai-modal-body"></div>
+                    <div class="ai-modal__actions">
+                        <a class="ai-btn" id="ai-modal-download" download="leah-budik-rendering.jpg" target="_blank" rel="noopener">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+                                <path d="M12 4v12M12 16l-4-4M12 16l4-4"/><path d="M4 20h16"/>
+                            </svg>
+                            הורידי תמונה
+                        </a>
+                        <button class="ai-btn ai-btn--gold" type="button" id="ai-modal-again">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M3 12a9 9 0 0 1 15.5-6.3M21 12a9 9 0 0 1-15.5 6.3"/>
+                                <path d="M18 3v4h-4M6 21v-4h4"/>
+                            </svg>
+                            וריאציה נוספת
+                        </button>
                     </div>
                 </div>
             </div>
