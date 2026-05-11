@@ -25,42 +25,55 @@
 const Replicate = require('replicate');
 
 // ─────────────────────────────────────────────────────────────────────
-// Prompt sandwich for Flux Kontext (instruction-style editor)
+// Prompt design (v4) — constraint-driven, not style-explainer
 //
-// Flux Kontext is NOT a text-to-image model — it edits the provided
-// `input_image` according to natural-language instructions. It does not
-// take a separate negative_prompt; undesired elements are excluded
-// inline ("avoid X, Y, Z").
+// The model already knows what "modern classic" or "industrial loft"
+// looks like — these are common training-data terms. Our prompt's job
+// is NOT to teach the model the style. Its job is to enforce HARD
+// CONSTRAINTS on what may and may not change between input and output.
 //
 // Composition order:
-//   1. ARCHITECTURAL_LOCK  — hard contract: keep the room as-is
-//   2. preset.style        — the curated style description (middle layer)
-//   3. customAddition      — optional per-request client direction
-//   4. QUALITY_LAYER       — camera, light, magazine cinematography
-//   5. NEGATIVE_GUIDANCE   — inline avoidance phrases
+//   1. TASK line       — single instruction with the style name
+//   2. KEEP list       — strict bullets, must remain identical to input
+//   3. CHANGE list     — explicit bullets, free to rework in the style
+//   4. CLIENT DIRECTION — optional per-request override
+//   5. LIGHT & CAMERA  — photography brief
+//   6. AVOID           — short failure-mode list
 // ─────────────────────────────────────────────────────────────────────
 
-const ARCHITECTURAL_LOCK =
-    'Transform this interior. Keep the architecture exactly as in the ' +
-    'photograph — all walls, windows, doors, ceiling shape, floor outline ' +
-    'and room dimensions stay in their current positions. Also keep any ' +
-    'major built-in appliance or fixture (fridge, oven, gas stove, ' +
-    'microwave, sink, bathroom toilet, shower base) in its current location. ' +
-    'Replace every other surface and object: cabinets, shelving, countertops, ' +
-    'backsplashes, flooring finish, wall paint, ceiling treatment, lighting ' +
-    'fixtures, furniture, soft furnishings, fabrics, hardware and decoration.';
+const KEEP_BULLETS = [
+    'walls, ceiling, floor outline and all room dimensions',
+    'every window and door — same size, same shape, same location',
+    'every built-in major appliance and fixture (fridge, oven, gas stove, microwave, sink, dishwasher, toilet, shower, bath) — same model, same position',
+    'the view visible through every window',
+    'camera angle, perspective and framing — match the input photograph exactly'
+];
+
+const CHANGE_BULLETS = [
+    'cabinetry, shelving, countertops, backsplashes — finish and material only, not position or footprint',
+    'wall finish, paint, wallpaper, panelling',
+    'floor finish (material, colour, pattern) — but not the floor outline',
+    'all lighting fixtures and the overall lighting mood',
+    'all loose furniture, soft furnishings, fabrics, textiles, rugs, plants, accessories',
+    'overall colour palette and hardware'
+];
 
 const QUALITY_LAYER =
     'Photograph in bright airy natural daylight pouring through the windows, ' +
-    'soft window shadows, daytime atmosphere, uncluttered editorial ' +
-    'composition, true-to-life premium materials, ultra-sharp micro-detail, ' +
-    'Architectural Digest magazine quality.';
+    'daytime atmosphere, uncluttered editorial composition, true-to-life ' +
+    'premium materials, Architectural Digest magazine quality.';
 
 const NEGATIVE_GUIDANCE =
     'dim or evening light, warm orange golden-hour tones, harsh artificial ' +
     'shadows, fake CGI plastic surfaces, oversaturated colors, cluttered ' +
     'staging, instagram filter look, distorted perspective, melted geometry, ' +
-    'low-resolution textures, watermarks, visible text.';
+    'watermarks, visible text.';
+
+// Kept as a back-compat export — earlier code imported this constant.
+// Now derived from KEEP_BULLETS so there is one source of truth.
+const ARCHITECTURAL_LOCK =
+    'STRICT — keep these identical to the input photograph:\n' +
+    KEEP_BULLETS.map(b => '  • ' + b).join('\n');
 
 // ─────────────────────────────────────────────────────────────────────
 // Model identifiers
@@ -82,27 +95,31 @@ function getClient() {
 }
 
 /**
- * Compose the final single-string prompt for Flux Kontext from the
- * preset's middle layer, the user's optional free-text addition, and
- * the global quality + negative-guidance layers.
+ * Compose the final prompt for Flux Kontext from a preset (the short
+ * style name) and an optional per-request client direction.
  *
  * Returns: { prompt: string }
  * (Negative is folded into the prompt — Flux Kontext has no separate
  * negative_prompt parameter.)
  */
 function buildPrompt(preset, customAddition) {
-    const styleLayer = ((preset && preset.promptLayers && preset.promptLayers.style) || '').trim();
+    const styleName = ((preset && preset.promptLayers && preset.promptLayers.style) || '').trim();
     const qualityOverride = ((preset && preset.promptLayers && preset.promptLayers.qualityOverride) || '').trim();
     const negativeOverride = ((preset && preset.promptLayers && preset.promptLayers.negativeOverride) || '').trim();
     const quality = qualityOverride || QUALITY_LAYER;
     const negative = negativeOverride || NEGATIVE_GUIDANCE;
     const userCustom = (customAddition || '').trim();
 
-    // Labeled sections separated by blank lines. Flux Kontext reads this
-    // structure as distinct directives rather than one run-on sentence.
+    const keepBlock = 'STRICT — keep these identical to the input photograph:\n' +
+        KEEP_BULLETS.map(b => '  • ' + b).join('\n');
+
+    const changeBlock = 'OK TO CHANGE — re-imagine these in the requested style:\n' +
+        CHANGE_BULLETS.map(b => '  • ' + b).join('\n');
+
     const sections = [
-        ARCHITECTURAL_LOCK,
-        `STYLE — apply this exact aesthetic to all replaced surfaces and objects:\n${styleLayer}`,
+        `TASK: Restyle this interior photograph into a ${styleName} aesthetic.`,
+        keepBlock,
+        changeBlock,
         userCustom ? `CLIENT DIRECTION: ${userCustom}.` : '',
         `LIGHT & CAMERA: ${quality}`,
         `AVOID: ${negative}`
@@ -209,6 +226,8 @@ module.exports = {
     getPredictionStatus,
     cancelPrediction,
     // Exported for tests / debugging
+    KEEP_BULLETS,
+    CHANGE_BULLETS,
     ARCHITECTURAL_LOCK,
     QUALITY_LAYER,
     NEGATIVE_GUIDANCE,
