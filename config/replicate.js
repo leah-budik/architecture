@@ -1,13 +1,23 @@
 /**
  * Replicate Service
  *
- * Single source of truth for talking to the Replicate API. Encapsulates:
- *  - The "Prompt Sandwich" composition (Quality + Style + Negative).
- *  - Choice of model + ControlNet stack (SDXL + Depth + M-LSD).
- *  - Webhook URL construction.
+ * Two-stage premium pipeline:
+ *   Stage 1 — black-forest-labs/flux-kontext-max  (2025 image editor)
+ *   Stage 2 — philz1337x/clarity-upscaler         (detail refinement)
+ *
+ * Why two stages:
+ *  - Flux Kontext Max is a 2025-generation instruction-tuned image editor that
+ *    preserves room geometry naturally (no ControlNet needed) and produces
+ *    magazine-grade output. It is the same class of model that powers Gemini
+ *    Nano-Banana — outputs are comparable.
+ *  - Clarity Upscaler runs on top to add micro-detail (wood grain, marble
+ *    veining, fabric weave) without altering composition. This is what
+ *    differentiates our renders from one-shot models like GPT-Image.
+ *
+ * Cost per job ≈ $0.08 (generate) + $0.012 (upscale) ≈ $0.092.
  *
  * Why a wrapper instead of calling Replicate inline:
- *  1. Phase 3 may swap to Fal.ai for lower latency — only this file changes.
+ *  1. Future model upgrades only touch this file.
  *  2. Easier to unit-test prompt construction without hitting the API.
  *  3. Centralized cost accounting & rate-limit handling later.
  */
@@ -15,32 +25,50 @@
 const Replicate = require('replicate');
 
 // ─────────────────────────────────────────────────────────────────────
-// Prompt Sandwich — fixed top & bottom layers per the Sprint 1 brief.
-// These are global defaults; a preset may override either via
-// promptLayers.qualityOverride / negativeOverride if we ever need to.
+// Prompt sandwich for Flux Kontext (instruction-style editor)
+//
+// Flux Kontext is NOT a text-to-image model — it edits the provided
+// `input_image` according to natural-language instructions. It does not
+// take a separate negative_prompt; undesired elements are excluded
+// inline ("avoid X, Y, Z").
+//
+// Composition order:
+//   1. ARCHITECTURAL_LOCK  — hard contract: keep the room as-is
+//   2. preset.style        — the curated style description (middle layer)
+//   3. customAddition      — optional per-request client direction
+//   4. QUALITY_LAYER       — camera, light, magazine cinematography
+//   5. NEGATIVE_GUIDANCE   — inline avoidance phrases
 // ─────────────────────────────────────────────────────────────────────
+
+const ARCHITECTURAL_LOCK =
+    'Transform the interior of this exact room. Preserve completely the original ' +
+    'walls, windows, doors, ceiling shape and floor plan visible in the input ' +
+    'photograph — do not add, remove, or relocate any architectural element. ' +
+    'Only change the materials, finishes, furniture, lighting fixtures, ' +
+    'decoration and color treatment of the space.';
+
 const QUALITY_LAYER =
-    '8k professional architectural photography, natural daylight, ' +
-    'soft shadows, sharp focus, shot on Hasselblad H6D, ultra-detailed materials';
+    'Editorial architectural photography for Architectural Digest, shot on a ' +
+    'medium-format Hasselblad H6D with a 35mm lens at f/4, late-afternoon ' +
+    'golden-hour daylight pouring through the windows with soft natural ' +
+    'diffusion, true-to-life premium materials, ultra-detailed micro-textures, ' +
+    'subtle ambient occlusion, calm restrained lived-in luxury, magazine ' +
+    'spread composition.';
 
-const NEGATIVE_LAYER =
-    'cluttered, oversaturated, cartoonish, low quality, distorted geometry, ' +
-    'warped walls, surreal, watermark, people, text, fish-eye lens, plastic-looking';
+const NEGATIVE_GUIDANCE =
+    'Avoid: cluttered staging, oversaturated colors, fake CGI plastic look, ' +
+    'harsh artificial shadows, instagram filter aesthetic, garish neon ' +
+    'lighting, cartoonish rendering, watermarks, visible text, distorted ' +
+    'perspective, melted geometry, low-resolution textures.';
 
 // ─────────────────────────────────────────────────────────────────────
-// Model selection
-//
-// `adirik/interior-design` — purpose-built interior redesign model on
-// Replicate. Internally uses SDXL with a depth+canny ControlNet ensemble
-// tuned to preserve room geometry. Good fit for Phase 1 with minimal
-// wiring on our side.
-//
-// If we later need finer control over Depth/M-LSD weights individually,
-// we'll switch to a generic SDXL + ControlNet pipeline (e.g.
-// `lucataco/sdxl-controlnet`) and pass our own conditioning images. For
-// MVP, `adirik/interior-design` is the simpler, more reliable choice.
+// Model identifiers
+// Both are "official" model slugs on Replicate — the SDK resolves the
+// latest deployed version automatically. If we ever need to pin a
+// specific version, switch `model:` for `version:` in the create call.
 // ─────────────────────────────────────────────────────────────────────
-const MODEL_VERSION = 'adirik/interior-design:76604baddc85b1b4616e1c6475eca080da339c8875bd4996705440484a6eac38';
+const MODEL_GENERATE = 'black-forest-labs/flux-kontext-max';
+const MODEL_UPSCALE = 'philz1337x/clarity-upscaler';
 
 let _replicateClient = null;
 function getClient() {
@@ -53,61 +81,53 @@ function getClient() {
 }
 
 /**
- * Compose the final prompt + negative prompt from a preset's middle layer
- * and the user's optional free-text addition.
+ * Compose the final single-string prompt for Flux Kontext from the
+ * preset's middle layer, the user's optional free-text addition, and
+ * the global quality + negative-guidance layers.
  *
- * Output:
- *  { prompt: string, negativePrompt: string }
+ * Returns: { prompt: string }
+ * (Negative is folded into the prompt — Flux Kontext has no separate
+ * negative_prompt parameter.)
  */
 function buildPrompt(preset, customAddition) {
-    const styleLayer = (preset.promptLayers && preset.promptLayers.style) || '';
-    const quality = (preset.promptLayers && preset.promptLayers.qualityOverride) || QUALITY_LAYER;
-    const negative = (preset.promptLayers && preset.promptLayers.negativeOverride) || NEGATIVE_LAYER;
-
+    const styleLayer = ((preset && preset.promptLayers && preset.promptLayers.style) || '').trim();
+    const qualityOverride = ((preset && preset.promptLayers && preset.promptLayers.qualityOverride) || '').trim();
+    const negativeOverride = ((preset && preset.promptLayers && preset.promptLayers.negativeOverride) || '').trim();
+    const quality = qualityOverride || QUALITY_LAYER;
+    const negative = negativeOverride || NEGATIVE_GUIDANCE;
     const userCustom = (customAddition || '').trim();
-    const middleLayer = userCustom ? `${styleLayer}, ${userCustom}` : styleLayer;
 
-    const prompt = `${middleLayer}, ${quality}`;
+    const parts = [
+        ARCHITECTURAL_LOCK,
+        styleLayer,
+        userCustom ? `Additional client direction: ${userCustom}.` : '',
+        quality,
+        negative
+    ].filter(Boolean);
 
-    return {
-        prompt,
-        negativePrompt: negative
-    };
+    return { prompt: parts.join(' ') };
 }
 
 /**
- * Start a generation prediction on Replicate.
+ * Start Stage 1 — Flux Kontext Max generation.
  *
- * Replicate runs asynchronously — this returns immediately with a
- * prediction ID. Completion is delivered to our `/api/v1/design/webhook`
- * endpoint when Replicate calls us back.
- *
- * Falls back to no-webhook (sync polling) if BASE_URL is unset, which is
- * the case in local dev where Replicate can't reach us.
+ * Returns the prediction id; completion is delivered to /api/v1/design/webhook
+ * (or polled on-demand from /jobs/:jobId in local dev).
  */
 async function startGeneration({ inputImageUrl, preset, customAddition, baseUrl }) {
     const client = getClient();
-    const { prompt, negativePrompt } = buildPrompt(preset, customAddition);
+    const { prompt } = buildPrompt(preset, customAddition);
 
-    const cn = preset.controlnet || {};
-    const denoise = typeof cn.denoise === 'number' ? cn.denoise : 0.78;
-
-    const input = {
-        image: inputImageUrl,
-        prompt,
-        negative_prompt: negativePrompt,
-        // Higher guidance = stronger adherence to prompt (typical 7-15)
-        guidance_scale: 12,
-        // Steps: 30-40 is the quality/cost sweet spot for SDXL
-        num_inference_steps: 35,
-        // How much we transform the input (0 = identical, 1 = ignore input).
-        // 0.75-0.80 = "visible style change while keeping walls stable".
-        prompt_strength: denoise,
-        // Random seed for reproducibility; -1 = random each time
-        seed: -1
+    const createOpts = {
+        model: MODEL_GENERATE,
+        input: {
+            prompt,
+            input_image: inputImageUrl,
+            aspect_ratio: 'match_input_image',
+            output_format: 'jpg',
+            safety_tolerance: 2
+        }
     };
-
-    const createOpts = { version: MODEL_VERSION, input };
     if (baseUrl) {
         createOpts.webhook = `${baseUrl}/api/v1/design/webhook`;
         createOpts.webhook_events_filter = ['completed'];
@@ -117,9 +137,50 @@ async function startGeneration({ inputImageUrl, preset, customAddition, baseUrl 
 
     return {
         predictionId: prediction.id,
-        status: prediction.status,  // usually "starting"
-        prompt,
-        negativePrompt
+        status: prediction.status,
+        prompt
+    };
+}
+
+/**
+ * Start Stage 2 — Clarity upscaler / detail refiner.
+ *
+ * Takes the Stage 1 output URL, returns a higher-resolution version with
+ * sharper materials, textures and edges. Composition is preserved at
+ * `resemblance: 0.6` and `creativity: 0.3`.
+ */
+async function startUpscale({ imageUrl, baseUrl }) {
+    const client = getClient();
+
+    const createOpts = {
+        model: MODEL_UPSCALE,
+        input: {
+            image: imageUrl,
+            prompt:
+                'masterpiece, best quality, highres, ultra-detailed architectural ' +
+                'interior, true-to-life premium materials, sharp natural textures, ' +
+                'fine wood grain, marble veining, fabric weave',
+            negative_prompt:
+                'low quality, blurry, cartoon, painting, plastic, oversaturated, ' +
+                'jpeg artifacts, banding',
+            scale_factor: 2,
+            dynamic: 6,
+            creativity: 0.3,
+            resemblance: 0.6,
+            num_inference_steps: 18,
+            output_format: 'jpg'
+        }
+    };
+    if (baseUrl) {
+        createOpts.webhook = `${baseUrl}/api/v1/design/webhook`;
+        createOpts.webhook_events_filter = ['completed'];
+    }
+
+    const prediction = await client.predictions.create(createOpts);
+
+    return {
+        predictionId: prediction.id,
+        status: prediction.status
     };
 }
 
@@ -128,25 +189,28 @@ async function startGeneration({ inputImageUrl, preset, customAddition, baseUrl 
  * webhooks aren't reachable (local dev) or for manual reconciliation.
  */
 async function getPredictionStatus(predictionId) {
-    const client = getClient();
-    return client.predictions.get(predictionId);
+    return getClient().predictions.get(predictionId);
 }
 
 /**
- * Cancel an in-flight prediction. Useful for admin "cancel" button.
+ * Cancel an in-flight prediction. Useful for an admin "cancel" button.
  */
 async function cancelPrediction(predictionId) {
-    const client = getClient();
-    return client.predictions.cancel(predictionId);
+    return getClient().predictions.cancel(predictionId);
 }
 
 module.exports = {
     buildPrompt,
     startGeneration,
+    startUpscale,
     getPredictionStatus,
     cancelPrediction,
-    // Exported for tests
+    // Exported for tests / debugging
+    ARCHITECTURAL_LOCK,
     QUALITY_LAYER,
-    NEGATIVE_LAYER,
-    MODEL_VERSION
+    NEGATIVE_GUIDANCE,
+    MODEL_GENERATE,
+    MODEL_UPSCALE,
+    // Back-compat aliases for any callers still using the old names
+    NEGATIVE_LAYER: NEGATIVE_GUIDANCE
 };

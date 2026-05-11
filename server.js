@@ -726,11 +726,14 @@ app.post('/api/v1/design/generate', requireAuth, async (req, res) => {
             presetSlug: presetId,
             customAddition: customAddition || '',
             referenceLine: referenceLine || null,
+            stage: 'generating',
             status: 'queued'
         });
 
-        // Fire the prediction. If this throws, the job stays in 'queued' and the
-        // admin can retry / debug from the history view.
+        // Fire Stage 1 (Flux Kontext Max). If this throws, the job stays in
+        // 'queued' and the admin can retry / debug from the history view.
+        // Stage 2 (upscale) is kicked off automatically from applyPredictionResult
+        // once Stage 1 succeeds.
         try {
             const baseUrl = getPublicBaseUrl(req);
             const result = await replicateService.startGeneration({
@@ -742,6 +745,7 @@ app.post('/api/v1/design/generate', requireAuth, async (req, res) => {
 
             job.predictionId = result.predictionId;
             job.promptUsed = result.prompt;
+            job.stage = 'generating';
             job.status = 'running';
             job.startedAt = new Date();
             await job.save();
@@ -760,7 +764,8 @@ app.post('/api/v1/design/generate', requireAuth, async (req, res) => {
         res.json({
             jobId: job.jobId,
             status: job.status,
-            estimatedSeconds: 25  // rough; Replicate's adirik/interior-design averages 15-30s
+            // Two-stage pipeline: ~15-25s generate + ~15-25s upscale
+            estimatedSeconds: 45
         });
     } catch (error) {
         console.error('Error in /generate:', error);
@@ -776,11 +781,18 @@ app.get('/api/v1/design/jobs/:jobId', requireAuth, async (req, res) => {
 
         // If we're still 'running' but the webhook may not have reached us
         // (local dev, or webhook dropped), do an on-demand status check.
-        if (job.status === 'running' && job.predictionId) {
-            const stale = !job.completedAt && (Date.now() - job.startedAt.getTime()) > 8000;
-            if (stale) {
+        // The active prediction id depends on which pipeline stage we're in:
+        //   stage='generating' → check predictionId (Stage 1, Flux Kontext)
+        //   stage='upscaling'  → check upscalePredictionId (Stage 2, Clarity)
+        if (job.status === 'running') {
+            const activePredictionId = job.stage === 'upscaling'
+                ? job.upscalePredictionId
+                : job.predictionId;
+            const stale = !job.completedAt && job.startedAt &&
+                (Date.now() - job.startedAt.getTime()) > 8000;
+            if (activePredictionId && stale) {
                 try {
-                    const pred = await replicateService.getPredictionStatus(job.predictionId);
+                    const pred = await replicateService.getPredictionStatus(activePredictionId);
                     await applyPredictionResult(job, pred);
                 } catch (e) {
                     // Non-fatal: we'll try again on next poll
@@ -827,7 +839,11 @@ app.post('/api/v1/design/webhook', async (req, res) => {
         const pred = req.body || {};
         if (!pred.id) return res.status(400).json({ error: 'missing prediction id' });
 
-        const job = await DesignJob.findOne({ predictionId: pred.id });
+        // Webhook may fire for either Stage 1 (Flux Kontext) or Stage 2
+        // (Clarity upscaler). Match against both id fields.
+        const job = await DesignJob.findOne({
+            $or: [{ predictionId: pred.id }, { upscalePredictionId: pred.id }]
+        });
         if (!job) {
             console.warn('Webhook for unknown predictionId:', pred.id);
             return res.status(200).json({ ok: true });  // ack so Replicate stops retrying
@@ -842,35 +858,100 @@ app.post('/api/v1/design/webhook', async (req, res) => {
 });
 
 /**
- * Shared logic for translating a Replicate prediction object into our
- * job record. Called from both the webhook and the on-demand status poll.
+ * Translate a Replicate prediction object into our job record. Called from
+ * both the webhook and the on-demand status poll.
+ *
+ * Handles the two-stage pipeline:
+ *   Stage 1 succeeds → save intermediate, kick off Stage 2.
+ *   Stage 2 succeeds → save final result, mark job done.
+ *   Stage 1 fails    → mark whole job failed.
+ *   Stage 2 fails    → fall back to Stage 1 result (still magazine-grade);
+ *                      job is marked done so the user gets something useful.
  */
 async function applyPredictionResult(job, pred) {
     if (!pred || !pred.status) return;
 
+    // Determine which stage this prediction belongs to. We compare against
+    // both ids because a single job has two prediction ids over its lifetime.
+    const isStage2 = job.upscalePredictionId && pred.id === job.upscalePredictionId;
+    const isStage1 = !isStage2 && job.predictionId && pred.id === job.predictionId;
+
     if (pred.status === 'succeeded') {
-        // Replicate's output for adirik/interior-design is a URL string OR
-        // an array (model-dependent). Normalize to a single URL.
+        // Replicate output may be a URL string or an array of URLs.
         const output = Array.isArray(pred.output) ? pred.output[0] : pred.output;
-        if (output && typeof output === 'string') {
-            job.resultImageUrl = output;
-            job.status = 'done';
-            job.completedAt = new Date();
-            // Cost estimation: adirik/interior-design ~$0.02-0.04/run.
-            // Real billing API call can be added later.
-            job.costUsd = 0.03;
-            await job.save();
-        } else {
+        if (!output || typeof output !== 'string') {
             job.status = 'failed';
             job.error = 'No output URL in successful prediction';
             job.completedAt = new Date();
             await job.save();
+            return;
         }
-    } else if (pred.status === 'failed' || pred.status === 'canceled') {
+
+        if (isStage1) {
+            // Stage 1 done. Save intermediate, kick off Stage 2 (upscale).
+            job.intermediateImageUrl = output;
+            job.stage = 'upscaling';
+            job.costUsd = (job.costUsd || 0) + 0.08;
+            await job.save();
+
+            try {
+                // baseUrl from env (PUBLIC_BASE_URL / RENDER_EXTERNAL_URL).
+                // No req here — we're inside the webhook handler or a poll.
+                const baseUrl = getPublicBaseUrl(null);
+                const upscale = await replicateService.startUpscale({
+                    imageUrl: output,
+                    baseUrl
+                });
+                job.upscalePredictionId = upscale.predictionId;
+                await job.save();
+            } catch (e) {
+                // Upscale failed to START. Don't fail the job — the Flux
+                // Kontext output is already premium. Surface it as the
+                // final result.
+                console.warn('Upscale start failed, using Stage 1 output as final:', e.message);
+                job.resultImageUrl = output;
+                job.stage = 'done';
+                job.status = 'done';
+                job.completedAt = new Date();
+                await job.save();
+            }
+            return;
+        }
+
+        if (isStage2) {
+            // Stage 2 done. This is the final, upscaled result.
+            job.resultImageUrl = output;
+            job.stage = 'done';
+            job.status = 'done';
+            job.completedAt = new Date();
+            job.costUsd = (job.costUsd || 0) + 0.012;
+            await job.save();
+            return;
+        }
+
+        // Shouldn't happen — prediction id matched neither stage.
+        console.warn('applyPredictionResult: prediction id matched no known stage for job', job.jobId);
+        return;
+    }
+
+    if (pred.status === 'failed' || pred.status === 'canceled') {
+        if (isStage2 && job.intermediateImageUrl) {
+            // Upscale failed but we have a good Stage 1 render. Ship it.
+            console.warn('Upscale failed, falling back to Stage 1 result:', pred.error);
+            job.resultImageUrl = job.intermediateImageUrl;
+            job.stage = 'done';
+            job.status = 'done';
+            job.error = '';
+            job.completedAt = new Date();
+            await job.save();
+            return;
+        }
+        // Stage 1 failed, or no fallback available. Whole job fails.
         job.status = 'failed';
         job.error = pred.error || `Prediction ${pred.status}`;
         job.completedAt = new Date();
         await job.save();
+        return;
     }
     // 'starting' | 'processing' — leave as 'running'
 }
