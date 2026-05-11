@@ -93,7 +93,11 @@ const uploaders = {
     hero: createUploader('hero'),
     logo: createUploader('logo'),
     gallery: (folderName) => createUploader(`galleries/${folderName}`),
-    about: createUploader('about')
+    about: createUploader('about'),
+    // AI Studio: source room photos that users upload before generation.
+    // Kept in a separate folder so we can prune them on a TTL later
+    // without touching the live site's gallery assets.
+    designInput: createUploader('design-inputs')
 };
 
 module.exports = {

@@ -190,13 +190,13 @@ All in Render Dashboard → Environment. **Never** put any of these in `.env` co
 | Day | Status | Notes |
 |---|---|---|
 | **Day 1: Backend foundation** | ✅ DONE | PR #1 merged. Models, routes, prompt sandwich, preset seeder all live. Smoke-tested locally. |
-| **Day 2: Replicate integration test** | ⏳ NEXT | End-to-end real generation. Verify webhook reception in production. |
-| **Day 3: Admin UI** | ⏳ planned | Upload + preset picker + custom text + generate button + before/after slider |
-| **Day 4: Reference Line UI** | ⏳ planned | Canvas overlay for calibration line (prep for Phase 2) |
-| **Day 5: Polish + 5 thumbnail images for presets** | ⏳ planned | Final QA, lead capture, deploy |
+| **Day 2+3 (merged): Admin UI** | ✅ DONE | New "סטודיו AI" section in admin sidebar. Upload + preset picker (5 cards) + custom textarea + generate button + progress + before/after slider + history grid. All scoped under `.ai-studio` and `window.AIStudio` so nothing leaks. End-to-end real generation against Replicate verified live. |
+| **Day 4: Reference Line UI** | ⏳ NEXT | Canvas overlay for calibration line (prep for Phase 2). Schema already has `referenceLine` subdocument. |
+| **Day 5: Polish + 5 thumbnail images for presets** | ⏳ planned | Final QA, lead capture form, optional cost reporting in admin |
 
 ### What's already built (committed to master)
 
+**Backend (Day 1):**
 - `models/DesignJob.js` — generation lifecycle tracking
 - `models/StylePreset.js` — preset schema + 5-preset seeder
 - `config/replicate.js` — `buildPrompt(preset, custom)`, `startGeneration(...)`, `getPredictionStatus(id)`, `cancelPrediction(id)`. Constants `QUALITY_LAYER` and `NEGATIVE_LAYER` are global; presets can override per `promptLayers.qualityOverride / negativeOverride`.
@@ -208,12 +208,20 @@ All in Render Dashboard → Environment. **Never** put any of these in `.env` co
   - `POST /api/v1/design/webhook` (Replicate callback, no auth)
 - `applyPredictionResult(job, pred)` — shared lifecycle handler used by webhook AND the on-demand status reconciliation in `GET /jobs/:jobId`
 
+**Admin UI (Day 2+3):**
+- New sidebar entry "סטודיו AI" with BETA badge (`data-section="ai-studio"`)
+- New section `#section-ai-studio` in `admin/dashboard.html` — uses existing `.card`, `.btn`, `.form-textarea` patterns plus AI-specific scoped classes
+- All AI-specific CSS appended to `admin/admin.css` under the `.ai-studio` namespace (no edits to existing tokens)
+- All AI-specific JS appended to `admin/admin.js` inside `window.AIStudio` IIFE, activated lazily when the section opens
+- New route: `POST /api/v1/design/upload` — accepts a single room photo, stores in Cloudinary `leah-budik/design-inputs/`, returns URL
+- `uploaders.designInput` added to `config/cloudinary.js`
+
 ### Not yet built
 
-- Admin UI section "AI Studio" in sidebar
+- Reference Line canvas overlay (Day 4)
 - Webhook signature verification (Replicate supports HMAC) — TODO before public launch
 - Lead-capture form (post-result)
-- Thumbnail images for the 5 presets
+- Thumbnail images for the 5 presets (admin upload UI + StylePreset.thumbnailUrl)
 - Cost reporting in admin (Replicate billing API integration)
 
 ---
@@ -247,6 +255,7 @@ All in Render Dashboard → Environment. **Never** put any of these in `.env` co
 
 ## 12. Decision Log (newest first)
 
+- **2026-05-11** AI Studio Day 2+3 — admin UI added. The visual language was sketched via Claude Design (claude.ai/design) for inspiration only; final markup uses the existing admin `.card`/`.btn`/`.form-*` system, with AI-specific styling fully scoped under `.ai-studio` so nothing leaks. The Claude Design output was deliberately NOT used directly (it used React + decorative elements that don't match our vanilla-JS admin shell).
 - **2026-05-11** Day 1 of AI Studio backend merged via PR #1 (direct push to master was 403'd; PR workaround documented in §6).
 - **2026-05-11** Mobile drawer redesigned from full-screen overlay to side panel (320px / 85vw) with X close button + backdrop, matching admin sidebar pattern.
 - **2026-05-11** Marquee `direction: ltr` forced on `.marquee` parent — RTL was right-aligning the inline-flex track, leaving an empty patch on the right after each translate cycle. Now seamless.
